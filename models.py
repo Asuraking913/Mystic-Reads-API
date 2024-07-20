@@ -1,4 +1,4 @@
-from app import db
+from extensions import db
 from uuid import uuid4
 
 def create_id(): 
