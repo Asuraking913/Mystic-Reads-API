@@ -6,8 +6,7 @@ def create_id():
 
 class User(db.Model):
     id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
-    first_name = db.Column(db.String(255))
-    last_name = db.Column(db.String(255))
     user_name = db.Column(db.String(255), unique = True, nullable = False)
     user_email = db.Column(db.String(255), unique = True, nullable = False)
     user_pass = db.Column(db.String(255), nullable = False)
+ 

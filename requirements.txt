@@ -8,3 +8,5 @@ Werkzeug==3.0.3
 flask_sqlalchemy
 flask_bcrypt
 flask_jwt_extended
+flask_dotenv
+python_dotenv
