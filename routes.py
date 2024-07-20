@@ -46,7 +46,8 @@ def root_routes(app, db):
             "user" : {
                 "userId" : user._id, 
                 "userName" : user.user_name, 
-                "userEmail" : user.user_email
+                "userEmail" : user.user_email, 
+                "joined" : user.joined 
             }
         }, 201))
 
@@ -69,7 +70,8 @@ def root_routes(app, db):
                         "user" : {
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
-                            "userEmail" : auth_user.user_email
+                            "userEmail" : auth_user.user_email, 
+                            "joined" : auth_user.joined 
                         }
                     }))
                     access_token = create_access_token(identity=auth_user._id)
@@ -117,6 +119,10 @@ def root_routes(app, db):
                     "status" : "unsucessfull",
                     "message" : "Email does Not exist", 
                 }, 400
+    
+    @app.route("/api/profiles")
+    def edit_profile():
+        pass
 
 
         
