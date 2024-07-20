@@ -4,6 +4,7 @@ from config import AppConfig
 from routes import root_routes
 from flask_jwt_extended import JWTManager
 
+
 db = SQLAlchemy()
 jwt = JWTManager()
 
