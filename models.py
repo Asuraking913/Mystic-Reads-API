@@ -6,11 +6,11 @@ def create_id():
     return uuid4().hex
 
 def return_current_date():
-    month = ['jananuary', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ]
+    month = ['january', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ]
     day = datetime.now().day
     month_index = datetime.now().month
     year = datetime.now().year
-    return f"{month[month_index + 1 ]}, {day}, {year} {datetime.now().time}"
+    return f"{month[month_index - 1]}, {day}, {year}"
 
 class User(db.Model):
     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)

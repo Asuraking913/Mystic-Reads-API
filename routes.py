@@ -1,7 +1,7 @@
 from flask import request, make_response, jsonify
 from models import User
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 
 def root_routes(app, db):
@@ -49,10 +49,10 @@ def root_routes(app, db):
                 "userEmail" : user.user_email, 
                 "joined" : user.joined 
             }
-        }, 201))
+        }))
 
         response.set_cookie('access_token', access_token, httponly=True, samesite="Strict", secure=True)
-        return response
+        return response, 201
     
     @app.route("/api/auth/login", methods = ['POST'])
     def login_user():
@@ -64,17 +64,18 @@ def root_routes(app, db):
             auth_user = User.query.filter_by(user_name = username).first()
             if auth_user:
                 if hasher.check_password_hash(auth_user.user_pass, userpass):
+                    access_token = create_access_token(identity=auth_user._id)
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "user" : {
+                            "access_token" : access_token, 
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
                             "joined" : auth_user.joined 
                         }
                     }))
-                    access_token = create_access_token(identity=auth_user._id)
                     response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
 
                     return response
@@ -103,11 +104,11 @@ def root_routes(app, db):
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email
                         }
-                    }, 200))
+                    }))
                     access_token = create_access_token(identity=auth_user._id)
                     response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
 
-                    return response
+                    return response, 200
 
                 return {
                     "status" : "unsucessfull",
@@ -120,9 +121,56 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
     
-    @app.route("/api/profiles")
-    def edit_profile():
-        pass
+    @app.route("/api/profiles_info", methods = ['POST', 'GET'])
+    @jwt_required()
+    def update_profile():
+        if request.method == 'GET':
+            user_id = get_jwt_identity()
+            if user_id:
+                current_user = User.query.filter_by(_id = user_id).first()
+                if current_user:
+                    response = {
+                        'status' : "success", 
+                        'message' : "User Profiles", 
+                        "user" : {
+                            "userId" : current_user._id, 
+                            "userName" : current_user.user_name, 
+                            "userEmail" : current_user.user_email,
+                            "member" : current_user.joined,
+                            "gender" : current_user.gender,
+                            "birthday" : current_user.birthday,
+                            "bio" : current_user.bio,
+                        }
+                    }
+                    return response, 200
+                
+        if request.method == 'POST':
+            data = request.json
+            user_id = get_jwt_identity()
+            if user_id:
+                current_user = User.query.filter_by(_id = user_id).first()
+                if current_user:
+                    current_user.bio = data['bio']
+                    current_user.birthday = data['birthday']
+                    current_user.gender = data['gender']
+                    db.session.commit()
+                    return  {
+                        'status' : "success", 
+                        'message' : "User Profiles", 
+                        "user" : {
+                            "userId" : current_user._id, 
+                            "userName" : current_user.user_name, 
+                            "userEmail" : current_user.user_email,
+                            "member" : current_user.joined,
+                            "gender" : current_user.gender,
+                            "birthday" : current_user.birthday,
+                            "bio" : current_user.bio,
+                        }
+                    }, 201
+            return {
+                    "status" : "unsucessfull",
+                    "message" : "Email does Not exist", 
+                }, 400
 
 
         
