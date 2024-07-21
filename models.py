@@ -41,6 +41,10 @@ class Posts(db.Model):
     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     likes = db.relationship('Likes', backref = 'post')
     comments = db.relationship('Comments', backref = 'posts')
+
+    def __init__(self, content, user):
+        self.content = content
+        self.user = user
     
 class Likes(db.Model):
     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)

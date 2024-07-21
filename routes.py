@@ -1,5 +1,5 @@
 from flask import request, make_response, jsonify
-from models import User
+from models import User, Posts, Comments, Likes
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
@@ -18,7 +18,7 @@ def root_routes(app, db):
         username = data['userName']
         useremail = data['userEmail']
         userpass = data['userPass']
-        userpass = hasher.generate_password_hash(userpass)
+        userpass = hasher.generate_password_hash(userpass).decode('utf-8')
 
         universal_users = User.query.all()
         for users in universal_users:
@@ -171,6 +171,25 @@ def root_routes(app, db):
                     "status" : "unsucessfull",
                     "message" : "Email does Not exist", 
                 }, 400
-
-
         
+    @app.route("/api/new_post/<user_id>", methods = ['POST'])  
+    @jwt_required()
+    def create_post(user_id):
+        data = request.json
+        content = data['content']
+        user_id = get_jwt_identity()
+        current_user = User.query.filter_by(_id = user_id).first()
+        new_post = Posts(content, current_user)
+        db.session.add(new_post)
+        db.session.commit()
+
+        return {
+                'status' : "success", 
+                'message' : "User Profiles", 
+                'post' : {
+                    'content' : new_post.content, 
+                    'time' : new_post.time_created,
+                    "userId" : current_user._id, 
+                    "userName" : current_user.user_name
+                }
+        }, 201
