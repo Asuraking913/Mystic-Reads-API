@@ -172,24 +172,50 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
         
-    @app.route("/api/new_post/<user_id>", methods = ['POST'])  
+    @app.route("/api/new_post/<user_id>", methods = ['POST', 'GET'])  
     @jwt_required()
     def create_post(user_id):
-        data = request.json
-        content = data['content']
-        user_id = get_jwt_identity()
-        current_user = User.query.filter_by(_id = user_id).first()
-        new_post = Posts(content, current_user)
-        db.session.add(new_post)
-        db.session.commit()
+        if request.method == 'POST':
+            data = request.json
+            content = data['content']
+            # user_id = get_jwt_identity()
+            current_user = User.query.filter_by(_id = user_id).first()
+            new_post = Posts(content, current_user)
+            db.session.add(new_post)
+            db.session.commit()
 
-        return {
-                'status' : "success", 
-                'message' : "User Profiles", 
-                'post' : {
-                    'content' : new_post.content, 
-                    'time' : new_post.time_created,
-                    "userId" : current_user._id, 
-                    "userName" : current_user.user_name
-                }
-        }, 201
+            return {
+                    'status' : "success", 
+                    'message' : "Created new post", 
+                    'user' : {
+                        "userId" : current_user._id, 
+                        "userName" : current_user.user_name,
+                    },
+                    'post' : {
+                        'content' : new_post.content, 
+                        'time' : new_post.time_created,
+                        "postId" : new_post._id,
+                    }
+            }, 201
+        
+        if request.method == 'GET': 
+
+            current_user = User.query.filter_by(_id = user_id).first()
+            list_posts = current_user.post
+
+            return {
+                    'status' : "success", 
+                    'message' : "List of user posts", 
+                    'user' : {
+                        "userId" : current_user._id, 
+                        "userName" : current_user.user_name,
+                    },
+                    "postList" : [
+                        {
+                        "content" : Posts.query.filter_by(_id = post._id).first().content, 
+                        "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
+                        "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
+                        "postComments" : Posts.query.filter_by(_id = post._id).first().comments
+                        } 
+                        for post in list_posts]
+            }, 200
