@@ -43,7 +43,7 @@ def root_routes(app, db):
         response =  make_response(jsonify({
             "status" : "success",
             "message" : "Registration Sucessfull", 
-            "user" : {
+            "data" : {
                 "userId" : user._id, 
                 "userName" : user.user_name, 
                 "userEmail" : user.user_email, 
@@ -68,7 +68,7 @@ def root_routes(app, db):
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
-                        "user" : {
+                        "data" : {
                             "access_token" : access_token, 
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
@@ -99,7 +99,7 @@ def root_routes(app, db):
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
-                        "user" : {
+                        "data" : {
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email
@@ -132,7 +132,7 @@ def root_routes(app, db):
                     response = {
                         'status' : "success", 
                         'message' : "User Profiles", 
-                        "user" : {
+                        "data" : {
                             "userId" : current_user._id, 
                             "userName" : current_user.user_name, 
                             "userEmail" : current_user.user_email,
@@ -157,7 +157,7 @@ def root_routes(app, db):
                     return  {
                         'status' : "success", 
                         'message' : "User Profiles", 
-                        "user" : {
+                        "data" : {
                             "userId" : current_user._id, 
                             "userName" : current_user.user_name, 
                             "userEmail" : current_user.user_email,
@@ -187,35 +187,61 @@ def root_routes(app, db):
             return {
                     'status' : "success", 
                     'message' : "Created new post", 
-                    'user' : {
-                        "userId" : current_user._id, 
-                        "userName" : current_user.user_name,
-                    },
-                    'post' : {
-                        'content' : new_post.content, 
-                        'time' : new_post.time_created,
-                        "postId" : new_post._id,
-                    }
-            }, 201
+                    "data" : {
+                            "userId" : current_user._id, 
+                            "userName" : current_user.user_name,
+                        },
+                        'post' : {
+                            'content' : new_post.content, 
+                            'time' : new_post.time_created,
+                            "postId" : new_post._id,
+                        }
+                    }, 201  
         
         if request.method == 'GET': 
 
             current_user = User.query.filter_by(_id = user_id).first()
-            list_posts = current_user.post
+            if current_user:
+                list_posts = current_user.post
 
+                return {
+                        'status' : "success", 
+                        'message' : "List of user posts", 
+                        "data" : {
+                                "userId" : current_user._id, 
+                                "userName" : current_user.user_name,
+                                "postList" : [
+                                {
+                                "content" : Posts.query.filter_by(_id = post._id).first().content, 
+                                "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
+                                "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
+                                "postComments" : Posts.query.filter_by(_id = post._id).first().comments
+                                } 
+                                for post in list_posts]}
+                        }, 200
             return {
-                    'status' : "success", 
-                    'message' : "List of user posts", 
-                    'user' : {
-                        "userId" : current_user._id, 
-                        "userName" : current_user.user_name,
-                    },
-                    "postList" : [
-                        {
-                        "content" : Posts.query.filter_by(_id = post._id).first().content, 
-                        "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
-                        "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
-                        "postComments" : Posts.query.filter_by(_id = post._id).first().comments
-                        } 
-                        for post in list_posts]
-            }, 200
+                        "status" : "unsucessfull",
+                        "message" : "Unable to get list of posts", 
+                    }, 400
+    
+    @app.route("/api/<postId>/likes", methods = ['POST'])
+    @jwt_required()
+    def add_like(postId):
+        if request.method == 'POST':
+            data = request.json
+            current_user = User.query.filter_by(_id = get_jwt_identity()).first()
+            target_post = Posts.query.filter_by(_id = postId).first()
+            if current_user and target_post:
+                new_like = Likes(current_user, target_post)
+                db.session.add(new_like)
+                db.session.commit()
+                
+                return {
+                    "status" : "success",
+                    "message" : "Post was liked sucessfully",
+                    "data" : {
+                        "postId" : postId,
+                        "postContent" : target_post.content
+                    }
+                }
+        

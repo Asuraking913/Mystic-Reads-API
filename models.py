@@ -57,5 +57,11 @@ class Likes(db.Model):
 
 class Comments(db.Model):
     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+    content = db.Column(db.String(345), nullable = False)
     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     post_id = db.Column(db.String(255), db.ForeignKey('posts._id'))
+
+    def __init__(self, content, user, post): 
+        self.user = user
+        self.post = post
+        self.content = content
