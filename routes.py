@@ -180,23 +180,28 @@ def root_routes(app, db):
             content = data['content']
             # user_id = get_jwt_identity()
             current_user = User.query.filter_by(_id = user_id).first()
-            new_post = Posts(content, current_user)
-            db.session.add(new_post)
-            db.session.commit()
+            if current_user:
+                new_post = Posts(content, current_user)
+                db.session.add(new_post)
+                db.session.commit()
 
+                return {
+                        'status' : "success", 
+                        'message' : "Created new post", 
+                        "data" : {
+                                "userId" : current_user._id, 
+                                "userName" : current_user.user_name,
+                            },
+                            'post' : {
+                                'content' : new_post.content, 
+                                'time' : new_post.time_created,
+                                "postId" : new_post._id,
+                            }
+                        }, 201  
             return {
-                    'status' : "success", 
-                    'message' : "Created new post", 
-                    "data" : {
-                            "userId" : current_user._id, 
-                            "userName" : current_user.user_name,
-                        },
-                        'post' : {
-                            'content' : new_post.content, 
-                            'time' : new_post.time_created,
-                            "postId" : new_post._id,
-                        }
-                    }, 201  
+                        "status" : "unsucessfull",
+                        "message" : "Invalid user", 
+                    }, 400
         
         if request.method == 'GET': 
 
@@ -244,4 +249,8 @@ def root_routes(app, db):
                         "postContent" : target_post.content
                     }
                 }
+            return {
+                        "status" : "unsucessfull",
+                        "message" : "Invalid User/post credentials", 
+                    }, 400
         
