@@ -21,15 +21,17 @@ class User(db.Model):
     birthday = db.Column(db.String(45))
     gender = db.Column(db.String(20))
     bio = db.Column(db.String(345))
+    current_location = db.Column(db.String(255))
     post = db.relationship('Posts', backref = 'user')
     likes = db.relationship('Likes', backref = 'user')
     comments = db.relationship('Comments', backref = 'user')
     
  
-    def __init__(self, name, email, pass_w):
+    def __init__(self, name, email, gender, pass_w):
         self.user_name = name
         self.user_email = email
         self.user_pass = pass_w
+        self.gender = gender
 
     def __repr___(self):
         return f'This object has a name: {self.user_name} and email: {self.user_email}'

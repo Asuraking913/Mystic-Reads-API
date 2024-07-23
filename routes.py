@@ -18,6 +18,7 @@ def root_routes(app, db):
         username = data['userName']
         useremail = data['userEmail']
         userpass = data['userPass']
+        gender = data['gender']
         userpass = hasher.generate_password_hash(userpass).decode('utf-8')
 
         universal_users = User.query.all()
@@ -30,11 +31,11 @@ def root_routes(app, db):
             if users.user_email == useremail:
                 return {
                     "status" : "unsucessfull",
-                    "message" : "User Name Already Exists", 
+                    "message" : "User Email Already Exists", 
                 }, 400
             
 
-        new_user = User(username, useremail, userpass)
+        new_user = User(username, useremail, gender, userpass)
         db.session.add(new_user)
         db.session.commit()
         user = User.query.filter_by(user_email = useremail).first()
@@ -47,6 +48,7 @@ def root_routes(app, db):
                 "userId" : user._id, 
                 "userName" : user.user_name, 
                 "userEmail" : user.user_email, 
+                "gender" : user.gender, 
                 "joined" : user.joined 
             }
         }))
@@ -58,7 +60,6 @@ def root_routes(app, db):
     def login_user():
         data = request.json
         userpass = data['userPass']
-        print(data)
         try:
             username = data['userName']
             auth_user = User.query.filter_by(user_name = username).first()
@@ -68,17 +69,17 @@ def root_routes(app, db):
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
-                        "data" : {
-                            "access_token" : access_token, 
+                        "data" : { 
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
+                            "gender" : auth_user.gender, 
                             "joined" : auth_user.joined 
                         }
                     }))
                     response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
 
-                    return response
+                    return response, 200
 
                 return {
                     "status" : "unsucessfull",
@@ -88,7 +89,7 @@ def root_routes(app, db):
 
             return {
                     "status" : "unsucessfull",
-                    "message" : "Username does Not exist", 
+                    "message" : "Invalid Username/email address", 
                 }, 400
 
         except Exception as e:
@@ -102,17 +103,19 @@ def root_routes(app, db):
                         "data" : {
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
+                            "gender" : auth_user.gender, 
                             "userEmail" : auth_user.user_email
                         }
                     }))
                     access_token = create_access_token(identity=auth_user._id)
                     response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
+                    response.headers = 'accesss'
 
                     return response, 200
 
                 return {
                     "status" : "unsucessfull",
-                    "message" : "Incorrect Password", 
+                    "message" : "Invalid Username or password2", 
                 }, 400
             
 
@@ -121,11 +124,12 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
     
-    @app.route("/api/profiles_info", methods = ['POST', 'GET'])
+    @app.route("/api/profiles_info/<userId>", methods = ['POST', 'GET'])
     @jwt_required()
-    def update_profile():
+    def update_profile(userId):
+        #dual user
         if request.method == 'GET':
-            user_id = get_jwt_identity()
+            user_id = userId
             if user_id:
                 current_user = User.query.filter_by(_id = user_id).first()
                 if current_user:
@@ -140,10 +144,13 @@ def root_routes(app, db):
                             "gender" : current_user.gender,
                             "birthday" : current_user.birthday,
                             "bio" : current_user.bio,
+                            "location" : current_user.current_location
                         }
                     }
+
                     return response, 200
                 
+        #!!foreign User  !!!security alert
         if request.method == 'POST':
             data = request.json
             user_id = get_jwt_identity()
@@ -152,7 +159,7 @@ def root_routes(app, db):
                 if current_user:
                     current_user.bio = data['bio']
                     current_user.birthday = data['birthday']
-                    current_user.gender = data['gender']
+                    current_user.current_location = data['location']
                     db.session.commit()
                     return  {
                         'status' : "success", 
@@ -165,6 +172,7 @@ def root_routes(app, db):
                             "gender" : current_user.gender,
                             "birthday" : current_user.birthday,
                             "bio" : current_user.bio,
+                            "location" : current_user.current_location
                         }
                     }, 201
             return {
@@ -172,14 +180,15 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
         
-    @app.route("/api/new_post/<user_id>", methods = ['POST', 'GET'])  
+    #user Endopint
+    @app.route("/api/user_posts/<user_id>", methods = ['POST', 'GET'])  
     @jwt_required()
     def create_post(user_id):
         if request.method == 'POST':
             data = request.json
             content = data['content']
-            # user_id = get_jwt_identity()
-            current_user = User.query.filter_by(_id = user_id).first()
+            user_id1 = get_jwt_identity()
+            current_user = User.query.filter_by(_id = user_id1).first()
             if current_user:
                 new_post = Posts(content, current_user)
                 db.session.add(new_post)
@@ -204,7 +213,6 @@ def root_routes(app, db):
                     }, 400
         
         if request.method == 'GET': 
-
             current_user = User.query.filter_by(_id = user_id).first()
             if current_user:
                 list_posts = current_user.post
@@ -216,14 +224,14 @@ def root_routes(app, db):
                                 "userId" : current_user._id, 
                                 "userName" : current_user.user_name,
                                 "postList" : [
-                                {
-                                "content" : Posts.query.filter_by(_id = post._id).first().content, 
-                                "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
-                                "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
-                                "postComments" : Posts.query.filter_by(_id = post._id).first().comments
-                                } 
-                                for post in list_posts]}
-                        }, 200
+                                        {
+                                            "content" : Posts.query.filter_by(_id = post._id).first().content, 
+                                            "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
+                                            "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
+                                            "postComments" : Posts.query.filter_by(_id = post._id).first().comments
+                                            } 
+                                    for post in list_posts]}
+                            }, 200
             return {
                         "status" : "unsucessfull",
                         "message" : "Unable to get list of posts", 
