@@ -70,11 +70,15 @@ def root_routes(app, db):
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : { 
+                            "access_token" : access_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
                             "gender" : auth_user.gender, 
-                            "joined" : auth_user.joined 
+                            "joined" : auth_user.joined,
+                            "birthday" : auth_user.birthday,
+                            "bio" : auth_user.bio,
+                            "location" : auth_user.current_location
                         }
                     }))
                     response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
@@ -104,7 +108,11 @@ def root_routes(app, db):
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "gender" : auth_user.gender, 
-                            "userEmail" : auth_user.user_email
+                            "userEmail" : auth_user.user_email,
+                            "gender" : auth_user.gender,
+                            "birthday" : auth_user.birthday,
+                            "bio" : auth_user.bio,
+                            "location" : auth_user.current_location
                         }
                     }))
                     access_token = create_access_token(identity=auth_user._id)
