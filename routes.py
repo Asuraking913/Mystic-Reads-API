@@ -135,58 +135,76 @@ def root_routes(app, db):
     @app.route("/api/profiles_info/<userId>", methods = ['POST', 'GET'])
     @jwt_required()
     def update_profile(userId):
-        #dual user
+        required_fields = ['bio', 'location', 'birthday']
+        data = request.json
+        for fields in required_fields:
+            if fields not in data:
+                return {
+                    "status" : "unsuccessfull", 
+                    "message" : f"Missing field {fields}"
+                }
+        
+        if request.method == 'POST':
+            user_id = get_jwt_identity()
+            auth_user = User.query.filter_by(_id = user_id).first()
+            if auth_user:
+                auth_user.bio 
+                auth_user.bio = data['bio']
+                auth_user.birthday = data['birthday']
+                auth_user.current_location = data['location']
+                db.session.commit()
+
+                response = {
+                    'status': "success",
+                    'message': "User Profile Updated",
+                    "data": {
+                        "userId": auth_user._id,
+                        "userName": auth_user.user_name,
+                        "userEmail": auth_user.user_email,
+                        "member": auth_user.joined,
+                        "gender": auth_user.gender,
+                        "birthday": auth_user.birthday,
+                        "bio": auth_user.bio,
+                        "location": auth_user.current_location
+                    }
+                }
+                return jsonify(response), 201
+            
+            return {
+                    "status" : "unsuccessfull", 
+                    "message" : "UserName Does not exist"
+                }, 404
+        
+
         if request.method == 'GET':
             user_id = userId
-            if user_id:
-                current_user = User.query.filter_by(_id = user_id).first()
-                if current_user:
-                    response = {
-                        'status' : "success", 
-                        'message' : "User Profiles", 
-                        "data" : {
-                            "userId" : current_user._id, 
-                            "userName" : current_user.user_name, 
-                            "userEmail" : current_user.user_email,
-                            "member" : current_user.joined,
-                            "gender" : current_user.gender,
-                            "birthday" : current_user.birthday,
-                            "bio" : current_user.bio,
-                            "location" : current_user.current_location
-                        }
+            foreign_user = User.query.filter_by(_id = user_id).first()
+            if foreign_user:
+                response = {
+                    'status': "success",
+                    'message': "User Profile Updated",
+                    "data": {
+                        "userId": auth_user._id,
+                        "userName": auth_user.user_name,
+                        "userEmail": auth_user.user_email,
+                        "member": auth_user.joined,
+                        "gender": auth_user.gender,
+                        "birthday": auth_user.birthday,
+                        "bio": auth_user.bio,
+                        "location": auth_user.current_location
                     }
-
-                    return response, 200
-                
-        #!!foreign User  !!!security alert
-        if request.method == 'POST':
-            data = request.json
-            user_id = get_jwt_identity()
-            if user_id:
-                current_user = User.query.filter_by(_id = user_id).first()
-                if current_user:
-                    current_user.bio = data['bio']
-                    current_user.birthday = data['birthday']
-                    current_user.current_location = data['location']
-                    db.session.commit()
-                    return  {
-                        'status' : "success", 
-                        'message' : "User Profiles", 
-                        "data" : {
-                            "userId" : current_user._id, 
-                            "userName" : current_user.user_name, 
-                            "userEmail" : current_user.user_email,
-                            "member" : current_user.joined,
-                            "gender" : current_user.gender,
-                            "birthday" : current_user.birthday,
-                            "bio" : current_user.bio,
-                            "location" : current_user.current_location
-                        }
-                    }, 201
+                }
+                return jsonify(response), 200
             return {
-                    "status" : "unsucessfull",
-                    "message" : "Email does Not exist", 
-                }, 400
+                    "status" : "unsuccessfull", 
+                    "message" : "UserName Does not exist"
+                }, 404
+        return {
+            "status" : "Uncessfull", 
+            "message" : "User Does not exist"
+        }, 404
+            
+
         
     #user Endopint
     @app.route("/api/user_posts/<user_id>", methods = ['POST', 'GET'])  
