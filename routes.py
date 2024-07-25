@@ -1,7 +1,7 @@
 from flask import request, make_response, jsonify
 from models import User, Posts, Comments, Likes
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 
 
 def root_routes(app, db):
@@ -10,6 +10,19 @@ def root_routes(app, db):
     @app.route("/")
     def home():
         return "<h1>This is the home page</h1>"
+    
+    @app.route("/api/refresh_token")
+    @jwt_required(refresh=True)
+    def refresh_token(): 
+        refreshed_user = get_jwt_identity()
+
+        access_token = create_access_token(identity=refreshed_user)
+        refresh_token = create_refresh_token(identity=refreshed_user)
+
+        return jsonify({
+            "access_token" : access_token, 
+            "refresh_token" : refresh_token
+        })
 
     @app.route("/api/auth/register", methods = ['POST'])
     def register_user():
@@ -39,7 +52,6 @@ def root_routes(app, db):
         db.session.add(new_user)
         db.session.commit()
         user = User.query.filter_by(user_email = useremail).first()
-        access_token = create_access_token(identity= user._id)
 
         response =  make_response(jsonify({
             "status" : "success",
@@ -53,7 +65,6 @@ def root_routes(app, db):
             }
         }))
 
-        response.set_cookie('access_token', access_token, httponly=True, samesite="Strict", secure=True)
         return response, 201
     
     @app.route("/api/auth/login", methods = ['POST'])
@@ -66,11 +77,13 @@ def root_routes(app, db):
             if auth_user:
                 if hasher.check_password_hash(auth_user.user_pass, userpass):
                     access_token = create_access_token(identity=auth_user._id)
+                    refresh_token = create_refresh_token(identity=auth_user._id)
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : { 
                             "access_token" : access_token,
+                            "refresh_token" : refresh_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
@@ -81,7 +94,7 @@ def root_routes(app, db):
                             "location" : auth_user.current_location
                         }
                     }))
-                    response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
+                    # response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
 
                     return response, 200
 
@@ -101,10 +114,14 @@ def root_routes(app, db):
             auth_user = User.query.filter_by(user_email = useremail).first()
             if auth_user:
                 if hasher.check_password_hash(auth_user.user_pass, userpass):
+                    access_token = create_access_token(identity=auth_user._id)
+                    refresh_token = create_refresh_token(identity=auth_user._id)
                     response =  make_response(jsonify({
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : {
+                            "access_token" : access_token,
+                            "refresh_token" : refresh_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "gender" : auth_user.gender, 
@@ -115,9 +132,7 @@ def root_routes(app, db):
                             "location" : auth_user.current_location
                         }
                     }))
-                    access_token = create_access_token(identity=auth_user._id)
-                    response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
-                    response.headers = 'accesss'
+                    # response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
 
                     return response, 200
 
@@ -184,6 +199,7 @@ def root_routes(app, db):
         return response, 404
         
     @app.route("/api/profiles_info/<userId>")
+    @jwt_required()
     def get_user_info(userId):
         if request.method == 'GET':
             foreign_user = User.query.filter_by(_id = userId).first()
@@ -221,7 +237,7 @@ def root_routes(app, db):
             
 
         
-    #user Endopint
+    #current user create post Endopint
     @app.route("/api/user_posts", methods = ['POST'])  
     @jwt_required()
     def create_post(user_id):
@@ -253,6 +269,8 @@ def root_routes(app, db):
                         "message" : "Invalid user", 
                     }, 400
 
+
+    #foreign user enpoint
     @app.route("/api/user_posts/<user_id>")
     def get_user_posts(user_id):
         if request.method == 'GET': 
