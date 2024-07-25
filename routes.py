@@ -132,19 +132,19 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
     
-    @app.route("/api/profiles_info/<userId>", methods = ['POST', 'GET'])
+    @app.route("/api/profiles_info", methods = ['POST'])
     @jwt_required()
-    def update_profile(userId):
+    def update_profile():
         required_fields = ['bio', 'location', 'birthday']
         data = request.json
-        for fields in required_fields:
-            if fields not in data:
-                return {
-                    "status" : "unsuccessfull", 
-                    "message" : f"Missing field {fields}"
-                }
         
         if request.method == 'POST':
+            for fields in required_fields:
+                if fields not in data:
+                    return {
+                        "status" : "unsuccessfull", 
+                        "message" : f"Missing field {fields}"
+                    }
             user_id = get_jwt_identity()
             auth_user = User.query.filter_by(_id = user_id).first()
             if auth_user:
@@ -170,44 +170,59 @@ def root_routes(app, db):
                 }
                 return jsonify(response), 201
             
-            return {
+            response = jsonify({
                     "status" : "unsuccessfull", 
                     "message" : "UserName Does not exist"
-                }, 404
-        
-
-        if request.method == 'GET':
-            user_id = userId
-            foreign_user = User.query.filter_by(_id = user_id).first()
-            if foreign_user:
-                response = {
-                    'status': "success",
-                    'message': "User Profile Updated",
-                    "data": {
-                        "userId": auth_user._id,
-                        "userName": auth_user.user_name,
-                        "userEmail": auth_user.user_email,
-                        "member": auth_user.joined,
-                        "gender": auth_user.gender,
-                        "birthday": auth_user.birthday,
-                        "bio": auth_user.bio,
-                        "location": auth_user.current_location
-                    }
-                }
-                return jsonify(response), 200
-            return {
-                    "status" : "unsuccessfull", 
-                    "message" : "UserName Does not exist"
-                }, 404
-        return {
-            "status" : "Uncessfull", 
+                })
+            
+            return response, 400
+            
+        response =  jsonify({
+            "status" : "Unsuccessfull", 
             "message" : "User Does not exist"
-        }, 404
+        })
+        return response, 404
+        
+    @app.route("/api/profiles_info/<userId>")
+    def get_user_info(userId):
+        if request.method == 'GET':
+            foreign_user = User.query.filter_by(_id = userId).first()
+            if foreign_user:
+                response = jsonify({
+                    'status': "success",
+                    'message': "User details",
+                    "data": {
+                        "userId": foreign_user._id,
+                        "userName": foreign_user.user_name,
+                        "userEmail": foreign_user.user_email,
+                        "member": foreign_user.joined,
+                        "gender": foreign_user.gender,
+                        "birthday": foreign_user.birthday,
+                        "bio": foreign_user.bio,
+                        "location": foreign_user.current_location
+                    }
+                })
+                
+                return response, 200
+            
+
+            response = jsonify({
+                    "status" : "unsuccessfull", 
+                    "message" : "UserName Does not exist"
+                })
+            
+            return response, 400
+        
+        response =  jsonify({
+            "status" : "Unsuccessfull", 
+            "message" : "User Does not exist"
+        })
+        return response, 404
             
 
         
     #user Endopint
-    @app.route("/api/user_posts/<user_id>", methods = ['POST', 'GET'])  
+    @app.route("/api/user_posts", methods = ['POST'])  
     @jwt_required()
     def create_post(user_id):
         if request.method == 'POST':
@@ -237,7 +252,9 @@ def root_routes(app, db):
                         "status" : "unsucessfull",
                         "message" : "Invalid user", 
                     }, 400
-        
+
+    @app.route("/api/user_posts/<user_id>")
+    def get_user_posts(user_id):
         if request.method == 'GET': 
             current_user = User.query.filter_by(_id = user_id).first()
             if current_user:
@@ -282,9 +299,13 @@ def root_routes(app, db):
                         "postId" : postId,
                         "postContent" : target_post.content
                     }
-                }
+                }, 201
             return {
                         "status" : "unsucessfull",
                         "message" : "Invalid User/post credentials", 
                     }, 400
         
+        return {
+            'status' : "uncessfull", 
+            'message' : "Invalid"
+        }, 400
