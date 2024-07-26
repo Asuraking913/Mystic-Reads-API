@@ -1,7 +1,9 @@
-from flask import request, make_response, jsonify
+from flask import make_response, jsonify, request, send_file
 from models import User, Posts, Comments, Likes
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
+from werkzeug.utils import secure_filename
+from io import BytesIO
 
 
 def root_routes(app, db):
@@ -10,6 +12,33 @@ def root_routes(app, db):
     @app.route("/")
     def home():
         return "<h1>This is the home page</h1>"
+    
+    # #test
+    # @app.route("/upload", methods = ['POST'])
+    # def upload_image():
+    #     if "file" not in request.files:
+    #         print('no Image')
+    #         return "no image", 400
+        
+    #     new_file = request.files['file']
+    #     if new_file:
+    #         file_name = secure_filename(new_file.filename)
+    #         data = new_file.read()
+    #         newImage = Image(file_name = file_name, data = data)
+    #         db.session.add(newImage)
+    #         db.session.commit()
+    #     return "Found Image Image"
+
+    # @app.route("/receive/<id>")
+    # def receive_file(id):
+    #     file = Image.query.filter_by(_id = id).first()
+    #     if file:
+    #         return send_file(
+    #             BytesIO(file.data), download_name=file.file_name, as_attachment=True
+    #         )
+    #     return "Image Does not exist"
+
+    #app
     
     @app.route("/api/refresh_token")
     @jwt_required(refresh=True)
@@ -327,3 +356,40 @@ def root_routes(app, db):
             'status' : "uncessfull", 
             'message' : "Invalid"
         }, 400
+    
+    def file_ext(filename):
+        allowed_extensions = ['jpg', 'png', "jpeg"]
+        # file_ext = filename.filename.rsplit(".", 1)[-1]
+        return '.' in filename and filename.rsplit(".", 1)[-1].lower() in allowed_extensions 
+    
+    
+    @app.route("/api/upload_picture", methods = ['POST'])
+    @jwt_required(optional=True)
+    def update_profile_pic():
+        file = request.files['profile']
+        user_id = get_jwt_identity()
+        auth_user = User.query.filter_by(_id = user_id).first()
+        if file:
+            if file_ext(file.filename):
+                auth_user.profile_image = file.read()
+                db.session.commit()
+                return jsonify({
+                    "status" : "success",
+                    "message" : "Image created sucessfully",
+                }), 201
+            
+            response = jsonify({
+                "status" : "unsuccessfull",
+                "message" : "Invalid file_extensions"
+            })
+
+            return response, 400
+        
+        response = jsonify({
+            "status" : "Unsuccessfull", 
+            "message" : "Could not Upload collect specified file"
+        })
+
+        return response, 400
+        return "sdfsfd", 400
+                

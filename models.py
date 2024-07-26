@@ -25,6 +25,8 @@ class User(db.Model):
     post = db.relationship('Posts', backref = 'user')
     likes = db.relationship('Likes', backref = 'user')
     comments = db.relationship('Comments', backref = 'user')
+    profile_image = db.Column(db.LargeBinary)
+    cover_image = db.Column(db.LargeBinary)
     
  
     def __init__(self, name, email, gender, pass_w):
@@ -67,3 +69,11 @@ class Comments(db.Model):
         self.user = user
         self.post = post
         self.content = content
+
+# class Image(db.Model):
+#     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+#     file_name = db.Column(db.String(40), nullable = False)
+#     data = db.Column(db.LargeBinary, nullable = False)
+
+#     def __repr__(self):
+#         return f"Image {self.file_name}"
