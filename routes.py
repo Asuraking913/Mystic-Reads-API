@@ -176,7 +176,7 @@ def root_routes(app, db):
                         "userId": auth_user._id,
                         "userName": auth_user.user_name,
                         "userEmail": auth_user.user_email,
-                        "member": auth_user.joined,
+                        "joined": auth_user.joined,
                         "gender": auth_user.gender,
                         "birthday": auth_user.birthday,
                         "bio": auth_user.bio,
@@ -224,7 +224,7 @@ def root_routes(app, db):
 
             response = jsonify({
                     "status" : "unsuccessfull", 
-                    "message" : "UserName Does not exist"
+                    "message" : "User Does not exist"
                 })
             
             return response, 400
