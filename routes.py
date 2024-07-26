@@ -364,32 +364,53 @@ def root_routes(app, db):
     
     
     @app.route("/api/upload_picture", methods = ['POST'])
-    @jwt_required(optional=True)
+    @jwt_required()
     def update_profile_pic():
-        file = request.files['profile']
         user_id = get_jwt_identity()
         auth_user = User.query.filter_by(_id = user_id).first()
-        if file:
-            if file_ext(file.filename):
-                auth_user.profile_image = file.read()
-                db.session.commit()
-                return jsonify({
-                    "status" : "success",
-                    "message" : "Image created sucessfully",
-                }), 201
+        try:
+            profile_image = request.files['profile']
+            print(profile_image)
+
+            if profile_image:
+                if file_ext(profile_image.filename):
+                    auth_user.profile_image = profile_image.read()
+                    db.session.commit()
+                    return jsonify({
+                        "status" : "success",
+                        "message" : "Profile photo uploaded sucessfully",
+                    }), 201
+
+                response = jsonify({
+                    "status" : "unsuccessfull",
+                    "message" : "Invalid file_extensions"
+                })
+
+                return response, 400
             
             response = jsonify({
-                "status" : "unsuccessfull",
-                "message" : "Invalid file_extensions"
-            })
+                "status" : 'Unsuccessfull', 
+                "message" : "Could not complete request"
+            }), 422
+        
+
+        except Exception as e:
+            cover_image = request.files['cover']
+            if cover_image:
+                if file_ext(cover_image.filename):
+                    auth_user.cover_image = cover_image.read()
+                    db.session.commit()
+                    return jsonify({
+                        "status" : "success",
+                        "message" : "Cover photo uploaded sucessfully",
+                    }), 201
+
+                response = jsonify({
+                    "status" : "unsuccessfull",
+                    "message" : "Invalid file_extensions"
+                })
+
+                return response, 400
 
             return response, 400
-        
-        response = jsonify({
-            "status" : "Unsuccessfull", 
-            "message" : "Could not Upload collect specified file"
-        })
-
-        return response, 400
-        return "sdfsfd", 400
                 
