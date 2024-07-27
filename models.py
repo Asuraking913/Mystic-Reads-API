@@ -70,10 +70,10 @@ class Comments(db.Model):
         self.post = post
         self.content = content
 
-# class Image(db.Model):
-#     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
-#     file_name = db.Column(db.String(40), nullable = False)
-#     data = db.Column(db.LargeBinary, nullable = False)
+class Image(db.Model):
+    _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+    file_name = db.Column(db.String(40), nullable = False)
+    data = db.Column(db.LargeBinary, nullable = False)
 
-#     def __repr__(self):
-#         return f"Image {self.file_name}"
+    def __repr__(self):
+        return f"Image {self.file_name}"

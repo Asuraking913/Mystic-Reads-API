@@ -1,13 +1,15 @@
 from flask import make_response, jsonify, request, send_file
-from models import User, Posts, Comments, Likes
+from models import User, Posts, Comments, Likes, Image
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from werkzeug.utils import secure_filename
 from io import BytesIO
-
+import magic
+import base64
 
 def root_routes(app, db):
     hasher = Bcrypt()
+    
     
     @app.route("/")
     def home():
@@ -365,12 +367,11 @@ def root_routes(app, db):
     
     @app.route("/api/upload_picture", methods = ['POST'])
     @jwt_required()
-    def update_profile_pic():
+    def upload_picture():
         user_id = get_jwt_identity()
         auth_user = User.query.filter_by(_id = user_id).first()
         try:
             profile_image = request.files['profile']
-            print(profile_image)
 
             if profile_image:
                 if file_ext(profile_image.filename):
@@ -413,4 +414,29 @@ def root_routes(app, db):
                 return response, 400
 
             return response, 400
-                
+        
+    @app.route("/api/fetch_picture", methods = ['GET'])
+    @jwt_required()
+    def retrieve_picture():
+        mime = magic.Magic(mime=True)
+        userId = get_jwt_identity()
+        auth_user = User.query.filter_by(_id = userId).first()
+        if auth_user:
+            images =  {}
+            if auth_user.profile_image:
+                images['profile'] = { "data" : base64.b64encode(auth_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(auth_user.profile_image) }
+            if auth_user.cover_image:
+                images['cover'] = { 'data' :  base64.b64encode(auth_user.cover_image).decode('utf-8'), "mime" : mime.from_buffer(auth_user.cover_image)}
+            
+            if images:
+                return jsonify(images), 200
+            
+            return {
+                "status" : "Unsucessfull", 
+                "message" : "Images Unavailable"
+            }, 400
+        
+        return {
+                "status" : "Unsucessfull", 
+                "message" : "Images Unavailable"
+            }, 400
