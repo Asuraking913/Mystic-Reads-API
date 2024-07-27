@@ -360,7 +360,7 @@ def root_routes(app, db):
         }, 400
     
     def file_ext(filename):
-        allowed_extensions = ['jpg', 'png', "jpeg"]
+        allowed_extensions = ['jpg', 'png', "jpeg", 'svg']
         # file_ext = filename.filename.rsplit(".", 1)[-1]
         return '.' in filename and filename.rsplit(".", 1)[-1].lower() in allowed_extensions 
     
@@ -438,5 +438,32 @@ def root_routes(app, db):
         
         return {
                 "status" : "Unsucessfull", 
-                "message" : "Images Unavailable"
+                "message" : "Invalid user"
             }, 400
+
+    @app.route("/api/remove_image", methods = ['POST'])
+    @jwt_required()
+    def delete_picture():
+        user_id = get_jwt_identity()
+        auth_user = User.query.filter_by(_id = user_id).first()
+        print(request.json)
+        if request.json['photo'] == 'cover':
+            auth_user.cover_image = b''
+            db.session.commit()
+            return {
+                "status" : "success", 
+                "message" : "Deleted Cover Image"
+            }, 201
+        
+        if request.json['photo'] == 'profile':
+            auth_user.profile_image = b''
+            db.session.commit()
+            return {
+                "status" : 'succes', 
+                "message" : "Deleted Profile Image"
+            }
+
+        return {
+            "status" : "Unsucessfull", 
+            "message" : "Could not complete operation"
+        }, 400
