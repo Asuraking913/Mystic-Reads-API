@@ -269,14 +269,14 @@ def root_routes(app, db):
 
         
     #current user create post Endopint
-    @app.route("/api/user_posts", methods = ['POST'])  
+    @app.route("/api/user_posts", methods = ['POST', 'GET'])  
     @jwt_required()
-    def create_post(user_id):
+    def create_fetch_post():
         if request.method == 'POST':
             data = request.json
             content = data['content']
-            user_id1 = get_jwt_identity()
-            current_user = User.query.filter_by(_id = user_id1).first()
+            user_id = get_jwt_identity()
+            current_user = User.query.filter_by(_id = user_id).first()
             if current_user:
                 new_post = Posts(content, current_user)
                 db.session.add(new_post)
@@ -299,6 +299,54 @@ def root_routes(app, db):
                         "status" : "unsucessfull",
                         "message" : "Invalid user", 
                     }, 400
+        
+        if request.method == 'GET':
+            mime = magic.Magic(mime=True)
+            user_id = get_jwt_identity()
+            current_user = User.query.filter_by(_id = user_id).first()
+            if current_user:
+                if current_user.profile_image:
+                    user_image = {"data" : base64.b64encode(current_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(current_user.profile_image)}
+                    response =  jsonify({
+                            'status' : "success", 
+                            'message' : "Fetched post successfully", 
+                            "data" : {
+                                    "userId" : current_user._id, 
+                                    "userName" : current_user.user_name,
+                                    "userPic" : user_image,
+                                    "post" : [
+                                        {
+                                            "content" : post.content, 
+                                            "postId" : post._id, 
+                                            "userId" : current_user._id, 
+                                            "userName" : current_user.user_name
+                                            } for post in current_user.post
+                                        ]
+                                }
+                            })
+                    return response, 200
+                else:
+                    return jsonify({
+                            'status' : "success", 
+                            'message' : "Fetched post successfully", 
+                            "data" : {
+                                    "userId" : current_user._id, 
+                                    "userName" : current_user.user_name,
+                                    "post" : [
+                                        {
+                                            "content" : post.content, 
+                                            "postId" : post._id, 
+                                            "userId" : current_user._id, 
+                                            "userName" : current_user.user_name
+                                            } for post in current_user.post
+                                        ]
+                                }
+                            }), 200
+            
+            return {
+                'status' : 'unsuccessfull', 
+                'message' : "Invalid User"
+            }
 
 
     #foreign user enpoint
