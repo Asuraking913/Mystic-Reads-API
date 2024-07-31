@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from io import BytesIO
 import magic
 import base64
+from flask_jwt_extended import set_access_cookies, set_refresh_cookies
 
 def root_routes(app, db):
     hasher = Bcrypt()
@@ -50,10 +51,16 @@ def root_routes(app, db):
         access_token = create_access_token(identity=refreshed_user)
         refresh_token = create_refresh_token(identity=refreshed_user)
 
-        return jsonify({
+        response = jsonify({
             "access_token" : access_token, 
             "refresh_token" : refresh_token
         })
+
+        set_access_cookies(response, access_token)
+        set_refresh_cookies(response, refresh_token)
+
+
+        return response, 200
 
     @app.route("/api/auth/register", methods = ['POST'])
     def register_user():
@@ -113,8 +120,6 @@ def root_routes(app, db):
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : { 
-                            "access_token" : access_token,
-                            "refresh_token" : refresh_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
@@ -125,7 +130,8 @@ def root_routes(app, db):
                             "location" : auth_user.current_location
                         }
                     }))
-                    # response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
+                    set_access_cookies(response, access_token)
+                    set_refresh_cookies(response, refresh_token)
 
                     return response, 200
 
@@ -163,7 +169,8 @@ def root_routes(app, db):
                             "location" : auth_user.current_location
                         }
                     }))
-                    # response.set_cookie('access_token', access_token, samesite='Strict', secure=True, httponly=True)
+                    set_access_cookies(response, access_token)
+                    set_refresh_cookies(response, refresh_token)
 
                     return response, 200
 
