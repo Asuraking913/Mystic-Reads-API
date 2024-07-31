@@ -157,8 +157,6 @@ def root_routes(app, db):
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : {
-                            "access_token" : access_token,
-                            "refresh_token" : refresh_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "gender" : auth_user.gender, 
@@ -185,13 +183,13 @@ def root_routes(app, db):
                     "message" : "Email does Not exist", 
                 }, 400
     
-    @app.route("/api/profiles_info", methods = ['POST'])
+
+    @app.route("/api/profiles_info", methods = ['POST', 'GET'])
     @jwt_required()
-    def update_profile():
-        required_fields = ['bio', 'location', 'birthday']
-        data = request.json
-        
+    def get_update_profile():
         if request.method == 'POST':
+            required_fields = ['bio', 'location', 'birthday']
+            data = request.json
             for fields in required_fields:
                 if fields not in data:
                     return {
@@ -225,16 +223,37 @@ def root_routes(app, db):
             
             response = jsonify({
                     "status" : "unsuccessfull", 
-                    "message" : "UserName Does not exist"
+                    "message" : "User Does not exist"
                 })
             
             return response, 400
-            
-        response =  jsonify({
-            "status" : "Unsuccessfull", 
-            "message" : "User Does not exist"
-        })
-        return response, 404
+
+        if request.method == 'GET':
+            user_id = get_jwt_identity()
+            auth_user = User.query.filter_by(_id = user_id).first()
+            if auth_user:
+                response = {
+                    'status': "success",
+                    'message': "Fetched User data Sucessfully",
+                    "data": {
+                        "userId": auth_user._id,
+                        "userName": auth_user.user_name,
+                        "userEmail": auth_user.user_email,
+                        "joined": auth_user.joined,
+                        "gender": auth_user.gender,
+                        "birthday": auth_user.birthday,
+                        "bio": auth_user.bio,
+                        "location": auth_user.current_location
+                    }
+                }
+                return jsonify(response), 200
+
+            response = jsonify({
+                    "status" : "unsuccessfull", 
+                    "message" : "UserName Does not exist"
+                })
+
+            return response, 400
         
     @app.route("/api/profiles_info/<userId>")
     @jwt_required()
