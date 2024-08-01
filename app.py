@@ -1,10 +1,7 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from config import AppConfig
 from routes import root_routes
-from flask_jwt_extended import JWTManager
 from extensions import db, jwt
-from flask_cors import CORS
 
 def create_app():
     
@@ -13,8 +10,6 @@ def create_app():
     app.config.from_object(AppConfig)
     db.init_app(app)
     jwt.init_app(app)
-   
-
 
     root_routes(app, db)
 

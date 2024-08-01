@@ -1,9 +1,7 @@
-from flask import make_response, jsonify, request, send_file
+from flask import make_response, jsonify, request
 from models import User, Posts, Comments, Likes, Image
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
-from werkzeug.utils import secure_filename
-from io import BytesIO
 import magic
 import base64
 from flask_jwt_extended import set_access_cookies, set_refresh_cookies
@@ -58,6 +56,8 @@ def root_routes(app, db):
 
         set_access_cookies(response, access_token)
         set_refresh_cookies(response, refresh_token)
+        # response.set_cookie('access_token_cookie', access_token, samesite='Strict', httponly=True, secure=True)
+        # response.set_cookie('refresh_token_cookie', refresh_token, samesite='Strict', httponly=True, secure=True)
 
 
         return response, 200
@@ -120,6 +120,7 @@ def root_routes(app, db):
                         "status" : "success",
                         "message" : "Login Sucessfull", 
                         "data" : { 
+                            'access' : access_token,
                             "userId" : auth_user._id, 
                             "userName" : auth_user.user_name, 
                             "userEmail" : auth_user.user_email, 
@@ -132,6 +133,9 @@ def root_routes(app, db):
                     }))
                     set_access_cookies(response, access_token)
                     set_refresh_cookies(response, refresh_token)
+
+                    # response.set_cookie('access_token_cookie', access_token, samesite='Strict', httponly=True, secure=True)
+                    # response.set_cookie('refresh_token_cookie', refresh_token, samesite='Strict', httponly=True, secure=True)
 
                     return response, 200
 
