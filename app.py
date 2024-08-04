@@ -2,6 +2,7 @@ from flask import Flask
 from config import AppConfig
 from routes import root_routes
 from extensions import db, jwt
+from extensions import socket
 
 def create_app():
     
@@ -10,6 +11,7 @@ def create_app():
     app.config.from_object(AppConfig)
     db.init_app(app)
     jwt.init_app(app)
+    socket.init_app(app)
 
     root_routes(app, db)
 

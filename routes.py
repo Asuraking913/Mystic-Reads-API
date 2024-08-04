@@ -4,7 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 import magic
 import base64
-from flask_jwt_extended import set_access_cookies, set_refresh_cookies
+from flask_jwt_extended import set_access_cookies, set_refresh_cookies, unset_access_cookies, unset_refresh_cookies
 
 def root_routes(app, db):
     hasher = Bcrypt()
@@ -186,7 +186,18 @@ def root_routes(app, db):
                     "status" : "unsucessfull",
                     "message" : "Email does Not exist", 
                 }, 400
-    
+        
+    @app.route("/api/logout", methods = ['GET'])
+    @jwt_required()
+    def logout():
+        response = jsonify({
+            'status' : 'Sucessfully', 
+            'message' : "Logged out successfully"
+        })
+
+        unset_access_cookies(response)
+        unset_refresh_cookies(response)
+        return response
 
     @app.route("/api/profiles_info", methods = ['POST', 'GET'])
     @jwt_required()
