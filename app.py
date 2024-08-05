@@ -14,7 +14,7 @@ def create_app():
     jwt.init_app(app)
     # socket.init_app(app, cors_allowed_origins = 'http://localhost:5173')
     # cors = CORS(app, resources={r"/*": {"origins": "*"}})
-    CORS(app, resources={r'/*': {"origins" : 'http://localhost:5173'}})
+    CORS(app, resources={r'/*': {"origins" : '*'}})
     root_routes(app, db)
     # root_socket(socket, db)
 
