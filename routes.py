@@ -133,6 +133,8 @@ def root_routes(app, db):
                     }))
                     set_access_cookies(response, access_token)
                     set_refresh_cookies(response, refresh_token)
+                    response.headers.add('Access-Control-Allow-Origin', 'https://mystic-reads.vercel.app')
+                    response.headers.add('Access-Control-Allow-Credentials', 'true')
 
                     # response.set_cookie('access_token_cookie', access_token, samesite='Strict', httponly=True, secure=True)
                     # response.set_cookie('refresh_token_cookie', refresh_token, samesite='Strict', httponly=True, secure=True)
