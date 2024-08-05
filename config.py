@@ -6,7 +6,7 @@ from datetime import timedelta
 load_dotenv()
 
 class AppConfig: 
-
+    
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     JWT_SECRET_KEY = os.getenv("SECRET_KEY")      ##Change this secret key
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=20000)
