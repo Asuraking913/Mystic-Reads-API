@@ -25,8 +25,15 @@ class User(db.Model):
     post = db.relationship('Posts', backref = 'user')
     likes = db.relationship('Likes', backref = 'user')
     comments = db.relationship('Comments', backref = 'user')
+    # friends = db.relationship('FriendList', backref = 'user')
     profile_image = db.Column(db.LargeBinary)
     cover_image = db.Column(db.LargeBinary)
+
+# class FriendList(db.Model):
+#     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+#     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+#     friend_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    
     
  
     def __init__(self, name, email, gender, pass_w):
@@ -77,3 +84,22 @@ class Image(db.Model):
 
     def __repr__(self):
         return f"Image {self.file_name}"
+    
+class Room(db.Model):
+    _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+    user_one_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    user_two_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    message = db.relationship('Messages', backref='room')
+
+class Messages(db.Model):
+    _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+    content = db.Column(db.String(500), unique = True, nullable = False)
+    user_one_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    user_two_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    room_id = db.Column(db.String(255), db.ForeignKey('room._id'))
+
+    def __init__(self, content, room):
+        self.content = content
+        self.room = room
+
+    

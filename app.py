@@ -2,8 +2,8 @@ from flask import Flask
 from config import AppConfig
 from routes import root_routes
 from extensions import db, jwt
-from extensions import socket
 from flask_cors import CORS
+from events import socket, root_socket
 
 def create_app():
     
@@ -16,6 +16,7 @@ def create_app():
     # cors = CORS(app, resources={r"/*": {"origins": "*"}})
     CORS(app, resources={r'/*': {"origins" : 'http://localhost:5173'}})
     root_routes(app, db)
+    root_socket(socket, db)
 
     with app.app_context():
         db.create_all()

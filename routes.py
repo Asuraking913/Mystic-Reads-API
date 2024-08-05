@@ -556,3 +556,4 @@ def root_routes(app, db):
             "status" : "Unsucessfull", 
             "message" : "Could not complete operation"
         }, 400
+    
