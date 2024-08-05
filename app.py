@@ -14,7 +14,7 @@ def create_app():
     jwt.init_app(app)
     # socket.init_app(app, cors_allowed_origins = 'http://localhost:5173')
     # cors = CORS(app, resources={r"/*": {"origins": "*"}})
-    CORS(app, supports_credentials= True,resources={r'/*': {"origins" : 'https://mystic-reads.vercel.app'}})
+    CORS(app, supports_credentials= True, resources={r'/*': {"origins" : 'https://mystic-reads.vercel.app'}})
     root_routes(app, db)
     # root_socket(socket, db)
 
