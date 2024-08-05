@@ -25,14 +25,14 @@ class User(db.Model):
     post = db.relationship('Posts', backref = 'user')
     likes = db.relationship('Likes', backref = 'user')
     comments = db.relationship('Comments', backref = 'user')
-    # friends = db.relationship('FriendList', backref = 'user')
+    friends = db.relationship('FriendList', backref = 'user')
     profile_image = db.Column(db.LargeBinary)
     cover_image = db.Column(db.LargeBinary)
 
-# class FriendList(db.Model):
-#     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
-#     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
-#     friend_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+class FriendList(db.Model):
+    _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
+    user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
+    friend_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     
     
  
