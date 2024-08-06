@@ -301,7 +301,7 @@ def root_routes(app, db):
     
     #get random posts
     @app.route("/api/fetch_feeds", methods = ['GET'])
-    # @jwt_required()
+    @jwt_required()
     def fetch_random():
         mime = magic.Magic(mime=True)
         universal_post = Posts.query.all()
@@ -311,24 +311,38 @@ def root_routes(app, db):
             selected_post = random.choice([items for items in universal_post if items != prev_post])
             prev_post = selected_post
             img = {"data" : base64.b64encode(selected_post.user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(selected_post.user.profile_image)}
+            
+            #check like status
+            like_status = [False]
+            for likes in selected_post.likes:
+                if get_jwt_identity() == likes.user_id:
+                    like_status.clear()
+                    like_status.append(True)
+                else:
+                    like_status.clear()
+                    like_status.append(False)
+            print(like_status)
+
             new_post = {
-                "userId" : selected_post._id, 
+                "userId" : selected_post.user._id, 
                 "userName" : selected_post.user.user_name,
                 "img" : img,
                 "likes" : len(selected_post.likes), 
+                "likeStatus" : like_status, 
                 "comments" : selected_post.comments,
-                'content' : selected_post.content
+                'content' : selected_post.content, 
+                'postId' : selected_post._id
             }
             feeds_list.append(new_post)
 
-        
+
         return {
             'status' : 'sucessfull', 
             'message' : 'new feeds fetched sucessfully', 
             "data" : {
                 'feeds' : feeds_list
             } 
-        }
+        }, 200
 
 
         
@@ -440,7 +454,8 @@ def root_routes(app, db):
                         "status" : "unsucessfull",
                         "message" : "Unable to get list of posts", 
                     }, 400
-    
+
+    #likes
     @app.route("/api/<postId>/likes", methods = ['POST'])
     @jwt_required()
     def add_like(postId):
@@ -448,6 +463,13 @@ def root_routes(app, db):
             data = request.json
             current_user = User.query.filter_by(_id = get_jwt_identity()).first()
             target_post = Posts.query.filter_by(_id = postId).first()
+            for likes in target_post.likes:
+                if likes.user_id == current_user._id:
+                    return {
+                        'status' : "success", 
+                        'message' : "Already  Liked"
+                    }, 200
+            
             if current_user and target_post:
                 new_like = Likes(current_user, target_post)
                 db.session.add(new_like)
@@ -471,6 +493,17 @@ def root_routes(app, db):
             'message' : "Invalid"
         }, 400
     
+    #comments
+    # @app.route("/api/<postId>/comment", methods = ['POST'])
+    # @jwt_required()
+    # def handle_comment(postId):
+    #     if request.method == 'POST': 
+    #         data = request.json
+    #         current_user = User.query.filter_by(_id = get_jwt_identity()).first()
+    #         target_post = Posts.query.filter_by(_id = postId).first()
+    #         if current_user._id
+
+    #fileext
     def file_ext(filename):
         allowed_extensions = ['jpg', 'png', "jpeg", 'svg']
         # file_ext = filename.filename.rsplit(".", 1)[-1]
