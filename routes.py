@@ -5,6 +5,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 import magic
 import base64
 from flask_jwt_extended import set_access_cookies, set_refresh_cookies, unset_access_cookies, unset_refresh_cookies
+import random
 
 def root_routes(app, db):
     hasher = Bcrypt()
@@ -169,13 +170,13 @@ def root_routes(app, db):
                 return response, 200
             return {
                 "status" : "unsucessfull",
-                "message" : "Invalid Username or password2", 
+                "message" : "Incorrect Password", 
             }, 400
         
 
         return {
                 "status" : "unsucessfull",
-                "message" : "Email does Not exist", 
+                "message" : "Invalid Username/Email", 
             }, 400
         
     @app.route("/api/logout", methods = ['GET'])
@@ -297,7 +298,38 @@ def root_routes(app, db):
             "message" : "User Does not exist"
         })
         return response, 404
-            
+    
+    #get random posts
+    @app.route("/api/fetch_feeds", methods = ['GET'])
+    # @jwt_required()
+    def fetch_random():
+        mime = magic.Magic(mime=True)
+        universal_post = Posts.query.all()
+        feeds_list = []
+        prev_post = []
+        for _ in range(0, 10):
+            selected_post = random.choice([items for items in universal_post if items != prev_post])
+            prev_post = selected_post
+            img = {"data" : base64.b64encode(selected_post.user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(selected_post.user.profile_image)}
+            new_post = {
+                "userId" : selected_post._id, 
+                "userName" : selected_post.user.user_name,
+                "img" : img,
+                "likes" : len(selected_post.likes), 
+                "comments" : selected_post.comments,
+                'content' : selected_post.content
+            }
+            feeds_list.append(new_post)
+
+        
+        return {
+            'status' : 'sucessfull', 
+            'message' : 'new feeds fetched sucessfully', 
+            "data" : {
+                'feeds' : feeds_list
+            } 
+        }
+
 
         
     #current user create post Endopint
