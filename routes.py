@@ -109,83 +109,74 @@ def root_routes(app, db):
     def login_user():
         data = request.json
         userpass = data['userPass']
-        try:
-            username = data['userName']
-            auth_user = User.query.filter_by(user_name = username).first()
-            if auth_user:
-                if hasher.check_password_hash(auth_user.user_pass, userpass):
-                    access_token = create_access_token(identity=auth_user._id)
-                    refresh_token = create_refresh_token(identity=auth_user._id)
-                    response =  make_response(jsonify({
-                        "status" : "success",
-                        "message" : "Login Sucessfull", 
-                        "data" : { 
-                            'access' : access_token,
-                            "userId" : auth_user._id, 
-                            "userName" : auth_user.user_name, 
-                            "userEmail" : auth_user.user_email, 
-                            "gender" : auth_user.gender, 
-                            "joined" : auth_user.joined,
-                            "birthday" : auth_user.birthday,
-                            "bio" : auth_user.bio,
-                            "location" : auth_user.current_location
-                        }
-                    }))
-                    set_access_cookies(response, access_token)
-                    set_refresh_cookies(response, refresh_token)
-
-                    # response.set_cookie('access_token_cookie', access_token, samesite='Strict', httponly=True, secure=True)
-                    # response.set_cookie('refresh_token_cookie', refresh_token, samesite='Strict', httponly=True, secure=True)
-
-                    return response, 200
-
-                return {
-                    "status" : "unsucessfull",
-                    "message" : "Incorrect Password", 
-                }, 400
-            
-
+    
+        username = data['userName']
+        auth_user = User.query.filter_by(user_name = username).first()
+        if auth_user:
+            if hasher.check_password_hash(auth_user.user_pass, userpass):
+                access_token = create_access_token(identity=auth_user._id)
+                refresh_token = create_refresh_token(identity=auth_user._id)
+                response =  make_response(jsonify({
+                    "status" : "success",
+                    "message" : "Login Sucessfull", 
+                    "data" : { 
+                        'access' : access_token,
+                        "userId" : auth_user._id, 
+                        "userName" : auth_user.user_name, 
+                        "userEmail" : auth_user.user_email, 
+                        "gender" : auth_user.gender, 
+                        "joined" : auth_user.joined,
+                        "birthday" : auth_user.birthday,
+                        "bio" : auth_user.bio,
+                        "location" : auth_user.current_location
+                    }
+                }))
+                set_access_cookies(response, access_token)
+                set_refresh_cookies(response, refresh_token)
+                # response.set_cookie('access_token_cookie', access_token, samesite='Strict', httponly=True, secure=True)
+                # response.set_cookie('refresh_token_cookie', refresh_token, samesite='Strict', httponly=True, secure=True)
+                return response, 200
             return {
-                    "status" : "unsucessfull",
-                    "message" : "Invalid Username/email address", 
-                }, 400
-
-        except Exception as e:
-            useremail = data['userEmail']
-            auth_user = User.query.filter_by(user_email = useremail).first()
-            if auth_user:
-                if hasher.check_password_hash(auth_user.user_pass, userpass):
-                    access_token = create_access_token(identity=auth_user._id)
-                    refresh_token = create_refresh_token(identity=auth_user._id)
-                    response =  make_response(jsonify({
-                        "status" : "success",
-                        "message" : "Login Sucessfull", 
-                        "data" : {
-                            "userId" : auth_user._id, 
-                            "userName" : auth_user.user_name, 
-                            "gender" : auth_user.gender, 
-                            "userEmail" : auth_user.user_email,
-                            "gender" : auth_user.gender,
-                            "birthday" : auth_user.birthday,
-                            "bio" : auth_user.bio,
-                            "location" : auth_user.current_location
-                        }
-                    }))
-                    set_access_cookies(response, access_token)
-                    set_refresh_cookies(response, refresh_token)
-
-                    return response, 200
-
-                return {
-                    "status" : "unsucessfull",
-                    "message" : "Invalid Username or password2", 
-                }, 400
-            
-
+                "status" : "unsucessfull",
+                "message" : "Incorrect Password", 
+            }, 400
+        
+        # return {
+        #         "status" : "unsucessfull",
+        #         "message" : "Invalid Username/email address", 
+        #     }, 400
+        auth_user = User.query.filter_by(user_email = username).first()
+        if auth_user:
+            if hasher.check_password_hash(auth_user.user_pass, userpass):
+                access_token = create_access_token(identity=auth_user._id)
+                refresh_token = create_refresh_token(identity=auth_user._id)
+                response =  make_response(jsonify({
+                    "status" : "success",
+                    "message" : "Login Sucessfull", 
+                    "data" : {
+                        "userId" : auth_user._id, 
+                        "userName" : auth_user.user_name, 
+                        "gender" : auth_user.gender, 
+                        "userEmail" : auth_user.user_email,
+                        "gender" : auth_user.gender,
+                        "birthday" : auth_user.birthday,
+                        "bio" : auth_user.bio,
+                        "location" : auth_user.current_location
+                    }
+                }))
+                set_access_cookies(response, access_token)
+                set_refresh_cookies(response, refresh_token)
+                return response, 200
             return {
-                    "status" : "unsucessfull",
-                    "message" : "Email does Not exist", 
-                }, 400
+                "status" : "unsucessfull",
+                "message" : "Invalid Username or password2", 
+            }, 400
+        
+
+        return {
+                "status" : "unsucessfull",
+                "message" : "Email does Not exist", 
+            }, 400
         
     @app.route("/api/logout", methods = ['GET'])
     @jwt_required()
