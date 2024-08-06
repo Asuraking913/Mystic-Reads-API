@@ -307,7 +307,7 @@ def root_routes(app, db):
         universal_post = Posts.query.all()
         feeds_list = []
         prev_post = []
-        for _ in range(0, 6):
+        for _ in range(0, 5):
             selected_post = random.choice([items for items in universal_post if items != prev_post])
             prev_post = selected_post
             img = {"data" : base64.b64encode(selected_post.user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(selected_post.user.profile_image)}
