@@ -409,7 +409,9 @@ def root_routes(app, db):
                                             "content" : post.content, 
                                             "postId" : post._id, 
                                             "userId" : current_user._id, 
-                                            "userName" : current_user.user_name
+                                            "userName" : current_user.user_name, 
+                                            "likes" : len(Posts.query.filter_by(_id = post._id).first().likes),
+                                            "comments" : len(Posts.query.filter_by(_id = post._id).first().comments)
                                             } for post in current_user.post
                                         ]
                                 }
