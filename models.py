@@ -72,9 +72,9 @@ class Comments(db.Model):
     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     post_id = db.Column(db.String(255), db.ForeignKey('posts._id'))
 
-    def __init__(self, content, user, post): 
+    def __init__(self, content, user, postId): 
         self.user = user
-        self.post = post
+        self.post_id = postId
         self.content = content
 
 class Image(db.Model):

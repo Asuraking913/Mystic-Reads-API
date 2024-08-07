@@ -328,7 +328,7 @@ def root_routes(app, db):
                 "userName" : selected_post.user.user_name,
                 "likes" : len(selected_post.likes), 
                 "likeStatus" : like_status, 
-                "comments" : selected_post.comments,
+                "comments" : [comment.content for comment in selected_post.comments],
                 'content' : selected_post.content, 
                 'postId' : selected_post._id
             }
@@ -506,14 +506,31 @@ def root_routes(app, db):
         }, 400
     
     #comments
-    # @app.route("/api/<postId>/comment", methods = ['POST'])
-    # @jwt_required()
-    # def handle_comment(postId):
-    #     if request.method == 'POST': 
-    #         data = request.json
-    #         current_user = User.query.filter_by(_id = get_jwt_identity()).first()
-    #         target_post = Posts.query.filter_by(_id = postId).first()
-    #         if current_user._id
+    @app.route("/api/<postId>/comment", methods = ['POST'])
+    @jwt_required()
+    def handle_comment(postId):
+        if request.method == 'POST': 
+            data = request.json
+            current_user = User.query.filter_by(_id = get_jwt_identity()).first()
+            target_post = Posts.query.filter_by(_id = postId).first()
+            print(target_post.content)
+            if current_user and target_post:
+                new_comment = Comments(content=data['content'], user=current_user, postId=postId)
+                db.session.add(new_comment)
+                db.session.commit()
+                return {
+                    "status" : "success",
+                    "message" : "Comment uploaded sucessfully",
+                    "data" : {
+                        "postId" : postId,
+                        "postContent" : target_post.content
+                    }
+                }, 201
+            return {
+                        "status" : "unsucessfull",
+                        "message" : "Invalid User/post credentials", 
+                    }, 400
+
 
     #fileext
     def file_ext(filename):
