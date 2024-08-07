@@ -457,8 +457,8 @@ def root_routes(app, db):
                                         {
                                             "content" : Posts.query.filter_by(_id = post._id).first().content, 
                                             "postId" : Posts.query.filter_by(_id = post._id).first()._id, 
-                                            "postLikes" : Posts.query.filter_by(_id = post._id).first().likes,
-                                            "postComments" : Posts.query.filter_by(_id = post._id).first().comments
+                                            "postLikes" : len(Posts.query.filter_by(_id = post._id).first().likes),
+                                            "postComments" : len(Posts.query.filter_by(_id = post._id).first().comments)
                                             } 
                                     for post in list_posts]}
                             }, 200
@@ -589,11 +589,39 @@ def root_routes(app, db):
 
             return response, 400
         
+    #auth user endpoint for pictures
     @app.route("/api/fetch_picture", methods = ['GET'])
     @jwt_required()
     def retrieve_picture():
         mime = magic.Magic(mime=True)
         userId = get_jwt_identity()
+        auth_user = User.query.filter_by(_id = userId).first()
+        if auth_user:
+            images =  {}
+            if auth_user.profile_image:
+                images['profile'] = { "data" : base64.b64encode(auth_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(auth_user.profile_image) }
+            if auth_user.cover_image:
+                images['cover'] = { 'data' :  base64.b64encode(auth_user.cover_image).decode('utf-8'), "mime" : mime.from_buffer(auth_user.cover_image)}
+            
+            if images:
+                return jsonify(images), 200
+            
+            return {
+                "status" : "Unsucessfull", 
+                "message" : "Images Unavailable"
+            }, 400
+        
+        return {
+                "status" : "Unsucessfull", 
+                "message" : "Invalid user"
+            }, 400
+
+    #foerign user enpoint for pictures
+    @app.route("/api/fetch_picture/<user_id>", methods = ['GET'])
+    @jwt_required()
+    def retrieve_forieign_picture(user_id):
+        mime = magic.Magic(mime=True)
+        userId = user_id
         auth_user = User.query.filter_by(_id = userId).first()
         if auth_user:
             images =  {}
