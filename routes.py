@@ -191,6 +191,7 @@ def root_routes(app, db):
         unset_refresh_cookies(response)
         return response
 
+    #profile/foreign enpoint 
     @app.route("/api/profiles_info", methods = ['POST', 'GET'])
     @jwt_required()
     def get_update_profile():
@@ -307,10 +308,9 @@ def root_routes(app, db):
         universal_post = Posts.query.all()
         feeds_list = []
         prev_post = []
-        for _ in range(0, 5):
+        for _ in range(0, 10):
             selected_post = random.choice([items for items in universal_post if items != prev_post])
             prev_post = selected_post
-            img = {"data" : base64.b64encode(selected_post.user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(selected_post.user.profile_image)}
             
             #check like status
             like_status = [False]
@@ -326,7 +326,6 @@ def root_routes(app, db):
             new_post = {
                 "userId" : selected_post.user._id, 
                 "userName" : selected_post.user.user_name,
-                "img" : img,
                 "likes" : len(selected_post.likes), 
                 "likeStatus" : like_status, 
                 "comments" : selected_post.comments,
@@ -344,6 +343,19 @@ def root_routes(app, db):
             } 
         }, 200
 
+    @app.route("/api/fetch_feeds/images/<userId>")
+    # @jwt_required()
+    def feeds_images(userId):
+        mime = magic.Magic(mime=True)
+        target_user = User.query.filter_by(_id = userId).first()
+        img = {"data" : base64.b64encode(target_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(target_user.profile_image)}
+        return {
+            "status" : 'sucess', 
+            "message" : "fetched Imaege sucessfully",
+            "data" : {
+                "img" : img
+            }
+        }
 
         
     #current user create post Endopint
