@@ -348,14 +348,46 @@ def root_routes(app, db):
     def feeds_images(userId):
         mime = magic.Magic(mime=True)
         target_user = User.query.filter_by(_id = userId).first()
-        img = {"data" : base64.b64encode(target_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(target_user.profile_image)}
+        if target_user.profile_image:
+            img = {"data" : base64.b64encode(target_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(target_user.profile_image)}
+            return {
+                "status" : 'sucess', 
+                "message" : "fetched Imaege sucessfully",
+                "data" : {
+                    "img" : img
+                }
+            }, 200
         return {
-            "status" : 'sucess', 
-            "message" : "fetched Imaege sucessfully",
-            "data" : {
-                "img" : img
-            }
-        }
+            "status" : 'unsucessfull', 
+            "message" : "User has no image",
+        }, 200
+    
+    #view full post
+    @app.route("/api/view_post/<postId>")
+    @jwt_required(optional=True)
+    def get_post(postId):
+        post = Posts.query.filter_by(_id = postId).first()
+        like_status = [False]
+        print(get_jwt_identity())
+        if get_jwt_identity():
+            for likes in post.likes:
+                if get_jwt_identity() == likes.user_id:
+                    like_status.clear()
+                    like_status.append(True)
+                else:
+                    like_status.clear()
+                    like_status.append(False)
+            print(like_status)
+        return {
+            "userName" : post.user.user_name,
+            "userId" : post.user._id, 
+            "content" : post.content,
+            "date" : post.time_created, 
+            "likes" : len(post.likes),
+            "likeStatus" : like_status,
+            "comments" : [comment.content for comment in post.comments],
+            "commentNo" : len([comment.content for comment in post.comments])
+         }, 200
 
         
     #current user create post Endopint
