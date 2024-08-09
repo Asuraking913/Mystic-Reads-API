@@ -349,19 +349,24 @@ def root_routes(app, db):
     def feeds_images(userId):
         mime = magic.Magic(mime=True)
         target_user = User.query.filter_by(_id = userId).first()
-        if target_user.profile_image:
-            img = {"data" : base64.b64encode(target_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(target_user.profile_image)}
+        if target_user:
+            if target_user.profile_image:
+                img = {"data" : base64.b64encode(target_user.profile_image).decode('utf-8'), "mime" : mime.from_buffer(target_user.profile_image)}
+                return {
+                    "status" : 'sucess', 
+                    "message" : "fetched Imaege sucessfully",
+                    "data" : {
+                        "img" : img
+                    }
+                }, 200
             return {
-                "status" : 'sucess', 
-                "message" : "fetched Imaege sucessfully",
-                "data" : {
-                    "img" : img
-                }
+                "status" : 'unsucessfull', 
+                "message" : "User has no image",
             }, 200
         return {
-            "status" : 'unsucessfull', 
-            "message" : "User has no image",
-        }, 200
+            "status" : 'uncessfull',
+            "message" : "Invalid User"
+        }, 400
     
     #view full post
     @app.route("/api/view_post/<postId>")
@@ -702,4 +707,21 @@ def root_routes(app, db):
             "status" : "Unsucessfull", 
             "message" : "Could not complete operation"
         }, 400
-    
+
+    @app.route("/api/delete_post/<postId>")    
+    @jwt_required()
+    def delete_post(postId):
+        if postId:
+            target_post = Posts.query.filter_by(_id = postId).first()
+            db.session.delete(target_post)
+            db.session.commit()
+
+            return {
+            "status" : "sucess", 
+            "message" : "Post removed sucessfully"
+            }, 200
+
+        return {
+            "status" : "uncessfull", 
+            "message" : "Unable to complete request"
+        }, 400
