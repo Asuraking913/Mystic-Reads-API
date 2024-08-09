@@ -321,19 +321,19 @@ def root_routes(app, db):
                 else:
                     like_status.clear()
                     like_status.append(False)
-            print(like_status)
 
             new_post = {
                 "userId" : selected_post.user._id, 
                 "userName" : selected_post.user.user_name,
                 "likes" : len(selected_post.likes), 
                 "likeStatus" : like_status, 
-                "comments" : [comment.content for comment in selected_post.comments],
+                "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in selected_post.comments],
                 'content' : selected_post.content, 
                 'postId' : selected_post._id
             }
             # if new_post not in feeds_list:
             feeds_list.append(new_post)
+
 
 
         return {
@@ -369,7 +369,6 @@ def root_routes(app, db):
     def get_post(postId):
         post = Posts.query.filter_by(_id = postId).first()
         like_status = [False]
-        print(get_jwt_identity())
         if get_jwt_identity():
             for likes in post.likes:
                 if get_jwt_identity() == likes.user_id:
@@ -378,17 +377,16 @@ def root_routes(app, db):
                 else:
                     like_status.clear()
                     like_status.append(False)
-            print(like_status)
         return {
-            "userName" : post.user.user_name,
-            "userId" : post.user._id, 
-            "content" : post.content,
-            "date" : post.time_created, 
-            "likes" : len(post.likes),
-            "likeStatus" : like_status,
-            "comments" : [{"comment" :comment.content, "userId" : comment.user_id, "userName" : comment.user.user_name} for comment in post.comments],
-            "commentNo" : len([comment.content for comment in post.comments])
-         }, 200
+                "userName" : post.user.user_name,
+                "userId" : post.user._id, 
+                "content" : post.content,
+                "date" : post.time_created, 
+                "likes" : len(post.likes),
+                "likeStatus" : like_status,
+                "comments" : [{"comment" :comment.content, "userId" : comment.user_id, "userName" : comment.user.user_name} for comment in post.comments],
+                "commentNo" : len([comment.content for comment in post.comments])
+             }, 200
 
         
     #current user create post Endopint
