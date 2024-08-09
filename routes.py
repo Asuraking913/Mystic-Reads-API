@@ -308,7 +308,7 @@ def root_routes(app, db):
         universal_post = Posts.query.all()
         feeds_list = []
         prev_post = []
-        for _ in range(0, 10):
+        for _ in range(0, 10) :
             selected_post = random.choice([items for items in universal_post if items != prev_post])
             prev_post = selected_post
             
@@ -332,6 +332,7 @@ def root_routes(app, db):
                 'content' : selected_post.content, 
                 'postId' : selected_post._id
             }
+            # if new_post not in feeds_list:
             feeds_list.append(new_post)
 
 
@@ -385,7 +386,7 @@ def root_routes(app, db):
             "date" : post.time_created, 
             "likes" : len(post.likes),
             "likeStatus" : like_status,
-            "comments" : [comment.content for comment in post.comments],
+            "comments" : [{"comment" :comment.content, "userId" : comment.user_id, "userName" : comment.user.user_name} for comment in post.comments],
             "commentNo" : len([comment.content for comment in post.comments])
          }, 200
 
