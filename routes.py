@@ -19,7 +19,6 @@ def root_routes(app, db):
     # @app.route("/upload", methods = ['POST'])
     # def upload_image():
     #     if "file" not in request.files:
-    #         print('no Image')
     #         return "no image", 400
         
     #     new_file = request.files['file']
@@ -551,7 +550,6 @@ def root_routes(app, db):
             data = request.json
             current_user = User.query.filter_by(_id = get_jwt_identity()).first()
             target_post = Posts.query.filter_by(_id = postId).first()
-            print(target_post.content)
             if current_user and target_post:
                 new_comment = Comments(content=data['content'], user=current_user, postId=postId)
                 db.session.add(new_comment)
@@ -686,7 +684,6 @@ def root_routes(app, db):
     def delete_picture():
         user_id = get_jwt_identity()
         auth_user = User.query.filter_by(_id = user_id).first()
-        print(request.json)
         if request.json['photo'] == 'cover':
             auth_user.cover_image = b''
             db.session.commit()
