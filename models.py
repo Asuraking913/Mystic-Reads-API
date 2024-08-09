@@ -47,7 +47,7 @@ class User(db.Model):
     
 class Posts(db.Model):
     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
-    content = db.Column(db.String(455), nullable = False)
+    content = db.Column(db.String(10000), nullable = False)
     time_created = db.Column(db.String(30), nullable = False, default = return_current_date)
     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     likes = db.relationship('Likes', backref = 'post')
