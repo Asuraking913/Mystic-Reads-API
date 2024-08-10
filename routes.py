@@ -343,6 +343,21 @@ def root_routes(app, db):
             } 
         }, 200
 
+    @app.route("/api/fetch_comments/<postId>")
+    @jwt_required(optional=True)
+    def fetch_comments(postId):
+        target_post = Posts.query.filter_by(_id = postId).first()
+        if target_post:
+            return {
+                'status' : "sucessfull", 
+                "message" : "Comments fetched sucessfully", 
+                'data' : {
+                "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in target_post.comments],
+                }
+            }
+
+
+
     @app.route("/api/fetch_feeds/images/<userId>")
     # @jwt_required()
     def feeds_images(userId):
