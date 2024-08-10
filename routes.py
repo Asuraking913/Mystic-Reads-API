@@ -553,7 +553,7 @@ def root_routes(app, db):
                     }, 400
         
         return {
-            'status' : "uncessfull", 
+            'status' : "unsucessfull", 
             'message' : "Invalid"
         }, 400
     
