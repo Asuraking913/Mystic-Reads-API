@@ -19,6 +19,7 @@ def root_routes(app, db):
     # @app.route("/upload", methods = ['POST'])
     # def upload_image():
     #     if "file" not in request.files:
+    #         print('no Image')
     #         return "no image", 400
         
     #     new_file = request.files['file']
@@ -120,7 +121,6 @@ def root_routes(app, db):
                     "status" : "success",
                     "message" : "Login Sucessfull", 
                     "data" : { 
-                        'access' : access_token,
                         "userId" : auth_user._id, 
                         "userName" : auth_user.user_name, 
                         "userEmail" : auth_user.user_email, 
@@ -684,6 +684,7 @@ def root_routes(app, db):
     def delete_picture():
         user_id = get_jwt_identity()
         auth_user = User.query.filter_by(_id = user_id).first()
+        print(request.json)
         if request.json['photo'] == 'cover':
             auth_user.cover_image = b''
             db.session.commit()
