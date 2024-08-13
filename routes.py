@@ -1,5 +1,5 @@
 from flask import make_response, jsonify, request
-from models import User, Posts, Comments, Likes, Image
+from models import User, Posts, Comments, Likes, Friend
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 import magic
@@ -14,31 +14,6 @@ def root_routes(app, db):
     @app.route("/")
     def home():
         return "<h1>This is the home page</h1>"
-    
-    # #test
-    # @app.route("/upload", methods = ['POST'])
-    # def upload_image():
-    #     if "file" not in request.files:
-    #         print('no Image')
-    #         return "no image", 400
-        
-    #     new_file = request.files['file']
-    #     if new_file:
-    #         file_name = secure_filename(new_file.filename)
-    #         data = new_file.read()
-    #         newImage = Image(file_name = file_name, data = data)
-    #         db.session.add(newImage)
-    #         db.session.commit()
-    #     return "Found Image Image"
-
-    # @app.route("/receive/<id>")
-    # def receive_file(id):
-    #     file = Image.query.filter_by(_id = id).first()
-    #     if file:
-    #         return send_file(
-    #             BytesIO(file.data), download_name=file.file_name, as_attachment=True
-    #         )
-    #     return "Image Does not exist"
 
     #app
     
@@ -307,54 +282,75 @@ def root_routes(app, db):
         universal_post = Posts.query.all()
         feeds_list = []
         prev_post = []
-        for _ in range(0, 10) :
-            selected_post = random.choice([items for items in universal_post if items != prev_post])
-            prev_post = selected_post
-            
-            #check like status
-            like_status = [False]
-            for likes in selected_post.likes:
-                if get_jwt_identity() == likes.user_id:
-                    like_status.clear()
-                    like_status.append(True)
-                else:
-                    like_status.clear()
-                    like_status.append(False)
+        if universal_post:
+            for _ in range(0, 10) :
+                selected_post = random.choice([items for items in universal_post if items != prev_post])
+                prev_post = selected_post
+                
+                #check like status
+                like_status = [False]
+                for likes in selected_post.likes:
+                    if get_jwt_identity() == likes.user_id:
+                        like_status.clear()
+                        like_status.append(True)
+                    else:
+                        like_status.clear()
+                        like_status.append(False)
+    
+                new_post = {
+                    "userId" : selected_post.user._id, 
+                    "userName" : selected_post.user.user_name,
+                    "likes" : len(selected_post.likes), 
+                    "likeStatus" : like_status, 
+                    "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in selected_post.comments],
+                    'content' : selected_post.content, 
+                    'postId' : selected_post._id
+                }
+                # if new_post not in feeds_list:
+                feeds_list.append(new_post)
+    
+    
+    
+            return {
+                'status' : 'sucessfull', 
+                'message' : 'new feeds fetched sucessfully', 
+                "data" : {
+                    'feeds' : feeds_list
+                } 
+            }, 200
 
-            new_post = {
-                "userId" : selected_post.user._id, 
-                "userName" : selected_post.user.user_name,
-                "likes" : len(selected_post.likes), 
-                "likeStatus" : like_status, 
-                "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in selected_post.comments],
-                'content' : selected_post.content, 
-                'postId' : selected_post._id
-            }
-            # if new_post not in feeds_list:
-            feeds_list.append(new_post)
-
-
-
-        return {
-            'status' : 'sucessfull', 
-            'message' : 'new feeds fetched sucessfully', 
-            "data" : {
-                'feeds' : feeds_list
-            } 
-        }, 200
+        else:
+            return {
+                'status' : 'unsucessfull', 
+                'message' : 'No posts Unavailable', 
+            }, 200
 
     @app.route("/api/fetch_comments/<postId>")
     @jwt_required(optional=True)
     def fetch_comments(postId):
         target_post = Posts.query.filter_by(_id = postId).first()
         if target_post:
+            if target_post.comments:
+                return {
+                    'status' : "sucessfull", 
+                    "message" : "Comments fetched sucessfully", 
+                    'data' : {
+                    "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in target_post.comments],
+                    }
+                }, 200
+
             return {
-                'status' : "sucessfull", 
-                "message" : "Comments fetched sucessfully", 
-                'data' : {
-                "comments" : [{"content" : comment.content, "commentId" : comment.user_id, "userName" : comment.user.user_name} for comment in target_post.comments],
-                }
-            }
+            'status' : "uncessfull",
+            "message" : 'No comments for this posts', 
+            'data' : {
+                    "comments" : [],
+                    }
+            }, 200
+
+        return {
+        'status' : 'uncessfull',
+        'message' : 'Invalid request',
+        }, 400
 
 
 
@@ -657,10 +653,7 @@ def root_routes(app, db):
             if images:
                 return jsonify(images), 200
             
-            return {
-                "status" : "Unsucessfull", 
-                "message" : "Images Unavailable"
-            }, 400
+            return jsonify(images), 200
         
         return {
                 "status" : "Unsucessfull", 
@@ -738,3 +731,109 @@ def root_routes(app, db):
             "status" : "uncessfull", 
             "message" : "Unable to complete request"
         }, 400
+
+
+    @app.route("/api/add_friend", methods = ['POST', 'GET'])
+    @jwt_required()
+    def add_friend():
+        if request.method == 'POST':
+            data = request.json
+            target_id = data['targetId']
+            auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+            target_user = User.query.filter_by(_id = target_id).first()
+            friend_list = Friend.query.all()
+            # return "sdfsfd"
+    
+            for friends in friend_list:
+                if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+                    return {
+                            'status' : 'sucessfull',
+                            'message' : 'Friend Relationship already established'
+                            }, 200
+    
+            if auth_user and target_user:
+                friend_relation = Friend(auth_user._id, target_user._id)
+                db.session.add(friend_relation)
+                db.session.commit()
+    
+                return {
+                    'status' : 'sucessfull',
+                    'message' : 'New Friend Created'
+                }, 201
+
+        return {
+            'status' : 'sucessfull',
+            'message' : 'Invalid request'
+        }, 400
+
+
+
+    @app.route("/api/verify_friend/<userId>")
+    @jwt_required()
+    def verify_friend(userId):
+        auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+        target_user = User.query.filter_by(_id = userId).first()
+        friend_list = Friend.query.all()
+
+        for friends in friend_list:
+            if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+                return {
+                        'status' : 'sucessfull',
+                        'message' : 'Friend Relationship already established',
+                            "data" : {
+                                'status' : True
+                            }
+                        }, 200
+        return {
+            'status'  : 'sucessfull',
+            'message' : 'No friend Relationship', 
+            "data" : {
+                        'status' : False
+                }
+        }, 200
+
+
+
+    @app.route("/api/unfollow_friend/<userId>")
+    @jwt_required()
+    def unfollow_friend(userId):
+        if request.method == 'GET':
+            auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+            target_user = User.query.filter_by(_id = userId).first()
+            friend_list = Friend.query.all()
+
+            for friends in friend_list:
+                if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+                    db.session.delete(friends)
+                    db.session.commit()
+
+                    return {
+                    'status' : "sucess", 
+                    'message' : 'Sucessfully removed friend Relationship', 
+                    "data" : {
+                        'status' : False
+                        }
+                    }, 200
+
+            return {
+            'status' : 'uncessfull',
+            'message' : 'Invalid Request'
+            }, 400
+
+
+
+    @app.route("/api/friends_list")
+    @jwt_required()
+    def handle_friends():
+        auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+        if auth_user:
+            response = {
+                'status' : 'sucess', 
+                'message' : 'Fetched friends sucessfully', 
+                'data' : {
+                    'friendList' : [({'friend_name' : friends.user_one.user_name}, {'friend_name' : friends.user_one.user_name}) for friends in auth_user.friend_user_one]
+                }
+            }
+            print(response, flush = True)
+
+        return response
