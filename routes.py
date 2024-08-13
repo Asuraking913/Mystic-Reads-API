@@ -742,10 +742,12 @@ def root_routes(app, db):
             auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
             target_user = User.query.filter_by(_id = target_id).first()
             friend_list = Friend.query.all()
+            print(target_user.user_name, flush=True)
+
             # return "sdfsfd"
     
             for friends in friend_list:
-                if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+                if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == target_user._id and friends.user_two_id == auth_user._id:
                     return {
                             'status' : 'sucessfull',
                             'message' : 'Friend Relationship already established'
@@ -776,7 +778,7 @@ def root_routes(app, db):
         friend_list = Friend.query.all()
 
         for friends in friend_list:
-            if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+            if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == target_user._id and friends.user_two_id == auth_user._id:
                 return {
                         'status' : 'sucessfull',
                         'message' : 'Friend Relationship already established',
