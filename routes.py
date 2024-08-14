@@ -833,9 +833,14 @@ def root_routes(app, db):
                 'status' : 'sucess', 
                 'message' : 'Fetched friends sucessfully', 
                 'data' : {
-                    'friendList' : [({'friend_name' : friends.user_one.user_name}, {'friend_name' : friends.user_one.user_name}) for friends in auth_user.friend_user_one]
+                    'friendList' : [
+                    {
+                     'id' : friends.user_two_id if friends.user_one_id == get_jwt_identity() else friends.user_one_id,
+                     'userName' : friends.user_two.user_name if friends.user_one_id == get_jwt_identity() else friends.user_one.user_name,
+                     'relation_id' : friends._id,
+                    } 
+                    for friends in auth_user.friend_user_one]
                 }
             }
-            print(response, flush = True)
 
         return response

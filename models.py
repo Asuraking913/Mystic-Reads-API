@@ -104,7 +104,7 @@ class Friend(db.Model):
 
     user_one = db.relationship('User', foreign_keys = [user_one_id], back_populates='friend_user_one')
     user_two = db.relationship('User', foreign_keys = [user_two_id], back_populates='friend_user_two')
-    room_id = db.relationship('Room', foreign_keys = [_id], back_populates='friend_relationship_id')
+    room_id = db.relationship('Room', backref = 'friend')
 
     def __init__(self, user_one, user_two):
         self.user_one_id = user_one
@@ -120,10 +120,10 @@ class Room(db.Model):
     message = db.relationship('Message', backref='room')
     day = db.Column(db.String(20), nullable = False, default = return_current_date)
     time_created = db.Column(db.String(40), nullable = False, default = return_current_time)
+    friend_relation_id = db.Column(db.String(255), db.ForeignKey('friend._id'))
 
     user_one = db.relationship('User', foreign_keys = [user_one_id], back_populates='room_user_one')
     user_two = db.relationship('User', foreign_keys = [user_two_id], back_populates='room_user_two')
-    friend_relation_id = db.relationship('User', foreign_keys=[_id],back_populates='room_id')
 
     def __init__(self, user_one, user_two):
         self.user_one_id = user_one
