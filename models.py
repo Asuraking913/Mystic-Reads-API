@@ -106,9 +106,10 @@ class Friend(db.Model):
     user_two = db.relationship('User', foreign_keys = [user_two_id], back_populates='friend_user_two')
     room_id = db.relationship('Room', backref = 'friend')
 
-    def __init__(self, user_one, user_two):
+    def __init__(self, user_one, user_two, roomId):
         self.user_one_id = user_one
         self.user_two_id = user_two
+        self.room_id = rommId
 
     def __repr__(self):
         return f"User:{self.user_one_id} and {self.user_two_id} are friends"
@@ -125,9 +126,10 @@ class Room(db.Model):
     user_one = db.relationship('User', foreign_keys = [user_one_id], back_populates='room_user_one')
     user_two = db.relationship('User', foreign_keys = [user_two_id], back_populates='room_user_two')
 
-    def __init__(self, user_one, user_two):
+    def __init__(self, user_one, user_two, friend_id):
         self.user_one_id = user_one
         self.user_two_id = user_two
+        self.friend_relation_id = friend_id
 
 
 class Message(db.Model):
