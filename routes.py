@@ -6,6 +6,7 @@ import magic
 import base64
 from flask_jwt_extended import set_access_cookies, set_refresh_cookies, unset_access_cookies, unset_refresh_cookies
 import random
+from sqlalchemy import or_
 
 def root_routes(app, db):
     hasher = Bcrypt()
@@ -741,8 +742,9 @@ def root_routes(app, db):
             target_id = data['targetId']
             auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
             target_user = User.query.filter_by(_id = target_id).first()
-            friend_list = Friend.query.all()
-            print(target_user.user_name, flush=True)
+            friend_list = Friend.query.filter(
+                or_(auth_user._id == Friend.user_one_id, auth_user._id == Friend.user_two_id)
+                ).all()
 
             # return "sdfsfd"
     
@@ -752,9 +754,20 @@ def root_routes(app, db):
                             'status' : 'sucessfull',
                             'message' : 'Friend Relationship already established'
                             }, 200
+
+            for relations in auth_user.friend_user_one:
+                if relations.user_one_id == target_user._id or relations.user_two_id == target_user._id:
+                    return {
+                        'status' : 'sucessfull',
+                        'message' : 'Friend Relationship already established'
+                        }, 200
     
             if auth_user and target_user:
                 friend_relation = Friend(auth_user._id, target_user._id)
+                auth_user.friend_user_one.append(friend_relation)
+                target_user.friend_user_two.append(friend_relation)
+                friend_relation.user_one_id = auth_user._id
+                friend_relation.user_two_id = target_user._id
                 db.session.add(friend_relation)
                 db.session.commit()
     
@@ -802,10 +815,12 @@ def root_routes(app, db):
         if request.method == 'GET':
             auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
             target_user = User.query.filter_by(_id = userId).first()
-            friend_list = Friend.query.all()
+            friend_list = Friend.query.filter(
+                    or_(userId == Friend.user_one_id or userId == Friend.user_two_id)
+                ).all()
 
             for friends in friend_list:
-                if friends.user_one_id == auth_user._id and friends.user_two_id == target_user._id or friends.user_one_id == auth_user._id and friends.user_two_id:
+                if friends.user_one_id == get_jwt_identity() or friends.user_two_id == get_jwt_identity():
                     db.session.delete(friends)
                     db.session.commit()
 
@@ -828,18 +843,27 @@ def root_routes(app, db):
     @jwt_required()
     def handle_friends():
         auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+
+        get_friend_list = Friend.query.filter(
+            or_(Friend.user_one_id == get_jwt_identity(), Friend.user_two_id == get_jwt_identity())
+            ).all()
+
+        print(get_friend_list)
+
         if auth_user:
-            response = {
-                'status' : 'sucess', 
-                'message' : 'Fetched friends sucessfully', 
-                'data' : {
-                    'friendList' : [
+            friend_list = [
                     {
                      'id' : friends.user_two_id if friends.user_one_id == get_jwt_identity() else friends.user_one_id,
                      'userName' : friends.user_two.user_name if friends.user_one_id == get_jwt_identity() else friends.user_one.user_name,
                      'relation_id' : friends._id,
                     } 
-                    for friends in auth_user.friend_user_one]
+                    for friends in get_friend_list]
+
+            response = {
+                'status' : 'sucess', 
+                'message' : 'Fetched friends sucessfully', 
+                'data' : {
+                    'friendList' : friend_list, 
                 }
             }
 

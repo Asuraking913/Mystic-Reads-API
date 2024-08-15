@@ -4,4 +4,4 @@ from flask_socketio import SocketIO
 
 db = SQLAlchemy()
 jwt = JWTManager()
-socket = SocketIO(async_mode = 'eventlet', logger= True, always_connect=True, engineo_logger=True)
+socket = SocketIO(async_mode = 'eventlet', logger= True, engineo_logger=True)

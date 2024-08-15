@@ -104,12 +104,11 @@ class Friend(db.Model):
 
     user_one = db.relationship('User', foreign_keys = [user_one_id], back_populates='friend_user_one')
     user_two = db.relationship('User', foreign_keys = [user_two_id], back_populates='friend_user_two')
-    room_id = db.relationship('Room', backref = 'friend')
+    room = db.relationship('Room', backref = 'friend')
 
-    def __init__(self, user_one, user_two, roomId):
-        self.user_one_id = user_one
-        self.user_two_id = user_two
-        self.room_id = rommId
+    def __init__(self, user1, user2):
+        self.user_one_id = user1
+        self.user_two_id = user2
 
     def __repr__(self):
         return f"User:{self.user_one_id} and {self.user_two_id} are friends"
@@ -141,7 +140,7 @@ class Message(db.Model):
     time_created = db.Column(db.String(40), nullable = False, default = return_current_time)
 
     def __init__(self, user_id, content, room):
-        self.user_id = user_one
+        self.user_id = user_id
         self.content = content
         self.room_id = room
 
