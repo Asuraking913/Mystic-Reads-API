@@ -13,5 +13,5 @@ root_socket(socket, db)
 
 if __name__ == '__main__':
     # app.run(debug=True)
-    socket.run(app, port=5001, debug=True),
+    socket.run(app, debug=False),
     
