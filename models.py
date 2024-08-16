@@ -133,7 +133,7 @@ class Room(db.Model):
 
 class Message(db.Model):
     _id = db.Column(db.String(255), unique = True, nullable = False, primary_key = True, default = create_id)
-    content = db.Column(db.String(500), unique = True, nullable = False)
+    content = db.Column(db.String(500), nullable = False)
     user_id = db.Column(db.String(255), db.ForeignKey('user._id'))
     room_id = db.Column(db.String(255), db.ForeignKey('room._id'))
     day = db.Column(db.String(20), nullable = False, default = return_current_date)

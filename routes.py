@@ -1,5 +1,5 @@
 from flask import make_response, jsonify, request
-from models import User, Posts, Comments, Likes, Friend
+from models import User, Posts, Comments, Likes, Friend, Message
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 import magic
@@ -848,8 +848,6 @@ def root_routes(app, db):
             or_(Friend.user_one_id == get_jwt_identity(), Friend.user_two_id == get_jwt_identity())
             ).all()
 
-        print(get_friend_list)
-
         if auth_user:
             friend_list = [
                     {
@@ -867,4 +865,62 @@ def root_routes(app, db):
                 }
             }
 
-        return response
+        return response, 200
+
+    @app.route("/api/fetch_messages/<relation_id>")
+    @jwt_required()
+    def handle_messages(relation_id):
+        auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
+        friend_relation = Friend.query.filter_by(_id = relation_id).first()
+        message = friend_relation.room[0].message
+        # print(message)
+        # print(friend_relation.room[0].message)
+        # message = Message.query.filter(
+        #     or_(Message.user_id == get_jwt_identity(), Message.user_id == foreign_user_id)
+        #     ).all()
+
+           # for sms in message:
+           #  if len(new_message) > 2:
+           #      break
+           #  new_message.append(sms)
+
+
+
+        if not message:
+            return {
+            'status' : 'uncessfull', 
+            'message' : 'No past messages', 
+            "data" : {
+                'messageList' : []
+            }
+            }
+
+        if message:
+            message = [
+                {
+                'day' : sms.day, 
+                'time' : sms.time_created,
+                'roomId' : sms.room_id, 
+                'userId' : sms.user_id, 
+                "content" : sms.content,
+                "userName" : User.query.filter_by(_id = sms.user_id).first().user_name
+                 }
+                for sms in message
+            ]
+
+            # message.reverse()
+
+            response = {
+                'status' : 'sucess',
+                'message' : 'Fetched message sucessfull',
+                'data' : {
+                    'messageList' : message
+                }
+            }
+
+            return response, 200
+
+        return {
+            'status' : 'uncessfull', 
+            'message' : 'No past message'
+        }, 200

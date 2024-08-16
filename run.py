@@ -10,10 +10,6 @@ app = create_app()
 
 root_socket(socket, db)
 
-# @socket.on('message')
-# def handle_friend():
-#     print('new message')
-#     socket.emit('response123', 'hey there')
 
 if __name__ == '__main__':
     # app.run(debug=True)
