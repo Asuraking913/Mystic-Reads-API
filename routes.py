@@ -905,7 +905,7 @@ def root_routes(app, db):
                 "content" : sms.content,
                 "userName" : User.query.filter_by(_id = sms.user_id).first().user_name
                  }
-                for sms in message
+                for sms in message 
             ]
 
             # message.reverse()
