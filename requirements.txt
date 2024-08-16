@@ -11,8 +11,6 @@ Flask-DotEnv==0.1.2
 Flask-JWT-Extended==4.6.0
 Flask-SocketIO==5.3.6
 Flask-SQLAlchemy==3.1.1
-gevent==24.2.1
-gevent-websocket==0.10.1
 greenlet==3.0.3
 h11==0.14.0
 itsdangerous==2.2.0
