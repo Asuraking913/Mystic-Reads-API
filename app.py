@@ -1,10 +1,11 @@
+import eventlet
+eventlet.monkey_patch(socket=True)
 from flask import Flask
 from config import AppConfig
 from routes import root_routes
 from extensions import db, jwt
 from flask_cors import CORS
 from events import socket
-import eventlet
 from flask_jwt_extended import jwt_required
 
 def create_app():

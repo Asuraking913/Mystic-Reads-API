@@ -1,5 +1,5 @@
 import eventlet
-eventlet.monkey_patch()
+eventlet.monkey_patch(socket=True)
 from app import create_app
 from os import system
 from events import socket, root_socket
