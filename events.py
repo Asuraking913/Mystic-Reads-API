@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch(socket=True)
 from extensions import socket
 from models import User, Friend, Room, Message
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
