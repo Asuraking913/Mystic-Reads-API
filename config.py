@@ -9,7 +9,7 @@ class AppConfig:
     
     SQLALCHEMY_DATABASE_URI = os.getenv('CHATDATABASE')
     # SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    # SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
+    SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
     JWT_SECRET_KEY = os.getenv("SECRET_KEY")      ##Change this secret key
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=20000)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(minutes=20000)
