@@ -1,5 +1,5 @@
-from flask import make_response, jsonify, request
-from models import User, Posts, Comments, Likes, Friend, Message
+from flask import make_response, jsonify, request, render_template
+from models import User, Posts, Comments, Likes, Friend
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 import magic
@@ -12,9 +12,10 @@ def root_routes(app, db):
     hasher = Bcrypt()
     
     
-    # @app.route("/")
-    # def home():
-    #     return "<h1>This is the home page</h1>"
+    @app.route("/")
+    def home():
+        app.logger.info('Tring to complete request')
+        return render_template('index.html')
 
     #app
     
