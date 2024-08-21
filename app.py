@@ -6,6 +6,7 @@ from routes import root_routes
 from extensions import db, jwt
 from flask_cors import CORS
 from events import socket
+from flask_migrate import Migrate
 
 def create_app():
     
@@ -21,6 +22,7 @@ def create_app():
     root_routes(app, db)
 
     with app.app_context():
+        migrate = Migrate(app, db)
         db.create_all()
 
     return app

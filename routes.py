@@ -875,7 +875,8 @@ def root_routes(app, db):
     def handle_messages(relation_id):
         auth_user = User.query.filter_by(_id = get_jwt_identity()).first()
         friend_relation = Friend.query.filter_by(_id = relation_id).first()
-        message = friend_relation.room[0].message
+        if len(friend_relation.room) > 0: 
+            message = friend_relation.room[0].message
         # print(message)
         # print(friend_relation.room[0].message)
         # message = Message.query.filter(
@@ -889,41 +890,44 @@ def root_routes(app, db):
 
 
 
-        if not message:
-            return {
-            'status' : 'uncessfull', 
-            'message' : 'No past messages', 
-            "data" : {
-                'messageList' : []
-            }
-            }
-
-        if message:
-            message = [
-                {
-                'day' : sms.day, 
-                'time' : sms.time_created,
-                'roomId' : sms.room_id, 
-                'userId' : sms.user_id, 
-                "content" : sms.content,
-                "userName" : User.query.filter_by(_id = sms.user_id).first().user_name
-                 }
-                for sms in message 
-            ]
-
-            # message.reverse()
-
-            response = {
-                'status' : 'sucess',
-                'message' : 'Fetched message sucessfull',
-                'data' : {
-                    'messageList' : message
+            if not message:
+                return {
+                'status' : 'uncessfull', 
+                'message' : 'No past messages', 
+                "data" : {
+                    'messageList' : []
                 }
-            }
+                }
 
-            return response, 200
+            if message:
+                message = [
+                    {
+                    'day' : sms.day, 
+                    'time' : sms.time_created,
+                    'roomId' : sms.room_id, 
+                    'userId' : sms.user_id, 
+                    "content" : sms.content,
+                    "userName" : User.query.filter_by(_id = sms.user_id).first().user_name
+                     }
+                    for sms in message 
+                ]
+
+                # message.reverse()
+
+                response = {
+                    'status' : 'sucess',
+                    'message' : 'Fetched message sucessfull',
+                    'data' : {
+                        'messageList' : message
+                    }
+                }
+
+                return response, 200
 
         return {
-            'status' : 'uncessfull', 
-            'message' : 'No past message'
-        }, 200
+                    'status' : 'unsucessfull',
+                    'message' : 'Fetched message sucessfull',
+                    'data' : {
+                        'messageList' : []
+                    }
+                }
