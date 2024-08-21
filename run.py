@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 from app import create_app
 from events import socket, root_socket
 from extensions import db
