@@ -10,8 +10,8 @@ root_socket(socket, db)
 
 
 if __name__ == '__main__':
-    # app.run(debug=True)
+    app.run(debug=True)
     # socket.run(app, debug=False),
-    socket.run(app, port = 5000, debug=True),
+    # socket.run(app, port = 5000, debug=True)
 
     

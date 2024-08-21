@@ -50,59 +50,26 @@
     <!-- <script src="{{ url_for('static', filename='socket.io.min.js') }}">    </script>     -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js" integrity="sha512-luMnTJZ7oEchNDZAtQhgjomP1eZefnl82ruTH/3Oj/Yu5qYtwL7+dVRccACS/Snp1lFXq188XFipHKYE75IaQQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
+
+<style>
+    body {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(189, 100, 100);
+    }
+
+    h1 {
+        font-size: 4rem;
+        font-family: sans-serif;
+        color: #fff1e6;
+    }
+</style>
 <body>
     <div class="box">
-        <div id="text-box" class="text-box ">
-
-        </div>
-        <div id="user"  class="text-submit">
-                <input placeholder="Enter your name" type="text" name="username" id="username">
-                <input id="user-sub" type="submit" value="Submit">
-        </div>
-        <div id="message" class="text-message">
-            <input  type="text" placeholder="message" name="message" id="message1">
-        </div>
+        <h1>Mystic Reads API</h1>
     </div>
-    <script>
-        var socket = io({autoConnect : false})
-        const message = document.getElementById('message')
-        const submitUser = document.getElementById('user-sub')
-        const username = document.getElementById('username')
-        const textBox = document.getElementById('text-box')
-
-        submitUser.addEventListener('click', (e) => {
-            e.preventDefault()
-
-
-            let user = username.value
-
-            socket.on('connect', () => {
-                socket.emit('joined', user)
-            })
-            console.log(username.value)
-
-            username.style.display = 'none'
-            document.getElementById('user').style.display = 'none'
-            message.style.display = 'block'
-            textBox.style.display = 'block'
-
-        })
-
-        document.getElementById('message1').addEventListener('keyup', (e) =>{
-            if (e.key == 'Enter') {
-                let newSms = e.target.value
-                console.log(newSms)
-            socket.emit('message', newSms)}
-        })
-
-        socket.on('chat', (data) => {
-            let p = document.createElement('p')
-            p.innerHTML =  `${data['user']} : ${data['sms']}`
-            p.style.fontSize = '1.2em'
-            textBox.appendChild(p)
-        })
-
-
 
     </script>
 </body>
