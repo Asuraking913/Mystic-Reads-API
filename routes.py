@@ -1,5 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
 from flask import make_response, jsonify, request, render_template
 from models import User, Posts, Comments, Likes, Friend
 from flask_bcrypt import Bcrypt
